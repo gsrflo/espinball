@@ -136,8 +136,9 @@ void drawTask() {
 	char str[100]; // buffer for messages to draw to display
 	struct coord joystickPosition; // joystick queue input buffer
 
-	font_t font1; // Load font for ugfx
-	font1 = gdispOpenFont("UI1");//DejaVuSans24*
+	font_t font1, font2; // Load font for ugfx
+	font1 = gdispOpenFont("DejaVuSans24*");
+	font2 = gdispOpenFont("DejaVuSans32*");
 
 	int8_t intSelectedMode = 1;
 
@@ -160,9 +161,9 @@ void drawTask() {
 		case 1:
 			// Generate string
 			sprintf(str, "Welcome to ESPinball");
-			gdispDrawString(100, 90, str, font1, Black);
+			gdispDrawString(50, 80, str, font1, Black);
 			sprintf(str, "Press E to continue");
-			gdispDrawString(100, 110, str, font1, Black);
+			gdispDrawString(50, 120, str, font1, Black);
 
 			break;
 
