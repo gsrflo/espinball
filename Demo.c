@@ -1,7 +1,7 @@
 /**
  * This is the main file of the ESPinball.
  * *
- * @author: Florian Geiser,
+ * @author: Simon Leier & Florian Geiser
  *
  *
  */
@@ -25,13 +25,8 @@ SemaphoreHandle_t ESPL_DisplayReady;
 QueueHandle_t JoystickQueue;
 
 
-
 // creating of dynamic handles
 TaskHandle_t	drawTaskHandle = NULL,
-				//drawTaskMenuScreenHandle = NULL,
-				//drawTableOneHandle = NULL,
-				//drawTableTwoHandle = NULL,
-				//drawTableThreeHandle = NULL,
 				checkJoystickHandle = NULL,
 				checkButtonHandle = NULL,
 				TaskControllerHandle = NULL;
@@ -48,8 +43,7 @@ TaskHandle_t CircleDisappearStaticHandle = NULL;
 // creating of semaphores
 SemaphoreHandle_t	CountButtonASemaphore;
 
-
-
+// global variables
 int8_t intDrawScreen = 1;
 // global button variables
 int8_t intButtonA = 0,
@@ -71,7 +65,6 @@ int main() {
 
 	xTaskCreate(TaskController, "TaskController", 1000, NULL, 9, &TaskControllerHandle);
 	//xTaskCreate(uartReceive, "uartReceive", 1000, NULL, 9, &uartReceiveHandle);
-
 
 	// interface tasks
 	xTaskCreate(checkJoystick, "checkJoystick", 1000, NULL, 5, &checkJoystickHandle);
@@ -104,8 +97,6 @@ void TaskController() {
 			intActScreen = 2;
 			SwitchScreenFlag = 0;		//Screen is now possible to change
 		}
-
-
 
 		//Screens get activated here
 		if (SwitchScreenFlag == 0) {
@@ -146,7 +137,7 @@ void drawTask() {
 	struct coord joystickPosition; // joystick queue input buffer
 
 	font_t font1; // Load font for ugfx
-	font1 = gdispOpenFont("DejaVuSans24*");
+	font1 = gdispOpenFont("UI1");//DejaVuSans24*
 
 	int8_t intSelectedMode = 1;
 
@@ -159,8 +150,6 @@ void drawTask() {
 
 		//draw triangle
 		//gdispDrawLine(trianglePositionX, trianglePositionY - 15, trianglePositionX + 15, trianglePositionY + 15, Red);
-
-
 
 
 		// Clear background
@@ -186,7 +175,16 @@ void drawTask() {
 			} else if (intButtonC && intSelectedMode < 3) {
 				intSelectedMode++;
 				vTaskDelay(100);
+			} else if (intButtonB && intSelectedMode == 1) {
+				intDrawScreen = 3; 		// singleplayer mode chosen
+			} else if (intButtonB && intSelectedMode == 2) {
+				intDrawScreen = 4; 		// multiplayer mode chosen
+			} else if (intButtonB && intSelectedMode == 3) {
+				intDrawScreen = 5; 		// settings mode chosen
+			} else if (intButtonD){
+				intDrawScreen = 1;
 			}
+
 			sprintf(str, "Choose an option:");
 			gdispDrawString(100, 70, str, font1, Black);
 
@@ -223,7 +221,21 @@ void drawTask() {
 					}
 
 			break;
-		case 3:
+		case 3: // singleplayer  mode
+			sprintf(str, "Singleplayer mode");
+			gdispDrawString(100, 70, str, font1, Black);
+			break;
+		case 4: // multiplayer mode
+			sprintf(str, "Multiplayer mode");
+			gdispDrawString(100, 70, str, font1, Black);
+			break;
+		case 5: // settings mode
+			if (intButtonD){
+				intDrawScreen = 2;
+				vTaskDelay(50);
+			}
+			sprintf(str, "Settings:");
+			gdispDrawString(100, 70, str, font1, Black);
 			break;
 		default:
 			break;
@@ -240,37 +252,7 @@ void drawTask() {
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
-/*void drawTableOne() {
 
-	char str[100]; // buffer for messages to draw to display
-	struct coord joystickPosition; // joystick queue input buffer
-
-	font_t font1; // Load font for ugfx
-	font1 = gdispOpenFont("DejaVuSans24*");
-
-
-	// Start endless loop
-	while (TRUE) {
-		while (xQueueReceive(JoystickQueue, &joystickPosition, 0) == pdTRUE);
-
-		// Clear background
-		gdispClear(White);
-
-		// Generate string
-		sprintf(str, "Table One");
-		gdispDrawString(100, 90, str, font1, Black);
-
-		// Wait for display to stop writing
-		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
-		// swap buffers
-		ESPL_DrawLayer();
-
-	}
-}
-/*------------------------------------------------------------------------------------------------------------------------------*/
-
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
 
 
 /**
