@@ -52,6 +52,21 @@ int8_t intButtonA = 0,
 		intButtonD = 0,
 		intButtonE = 0,
 		intButtonK = 0;
+//Moving parts
+	int coordRightLeverY1Triggered = 170;
+	int coordRightLeverY1Idle = 210;
+	float coordRightLeverX1 = 320/2 + 20; //displaySizeX/2 + 10;
+	int coordRightLeverY1 = 220; //coordRightLeverY1Idle;
+	int coordRightLeverX2 = 320/2 + 70;//displaySizeX/2 + 60;
+	int coordRightLeverY2 = 200;
+
+	int coordLeftLeverY2Triggered = 170;
+	int coordLeftLeverY2Idle = 210;
+	int coordLeftLeverX1 = 320/2 - 70;
+	int coordLeftLeverY1 = 200;
+	int coordLeftLeverX2 = 320/2 - 20;
+	int coordLeftLeverY2 = 220; //coordLeftLeverY2Idle;
+
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 int main() {
@@ -79,9 +94,9 @@ int main() {
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 void TaskController() {
-	int16_t intActScreen = 0;
-	int16_t SwitchScreenFlag = 0;
-	int16_t intDeviceStart = 0;
+	int8_t intActScreen = 0;
+	int8_t SwitchScreenFlag = 0;
+	int8_t intDeviceStart = 0;
 
 	while (TRUE) {
 
@@ -138,21 +153,16 @@ void drawTask() {
 
 	font_t font1, font2; // Load font for ugfx
 	font1 = gdispOpenFont("DejaVuSans24*");
-	font2 = gdispOpenFont("DejaVuSans32*");
+	font2 = gdispOpenFont("DejaVuSans16*");
 
 	int8_t intSelectedMode = 1;
+
+
 
 
 	// Start endless loop
 	while (TRUE) {
 		while (xQueueReceive(JoystickQueue, &joystickPosition, 0) == pdTRUE);
-		//draw circle
-		//gdispFillCircle(circlePositionX, circlePositionY, 10, Green);
-
-		//draw triangle
-		//gdispDrawLine(trianglePositionX, trianglePositionY - 15, trianglePositionX + 15, trianglePositionY + 15, Red);
-
-
 		// Clear background
 		gdispClear(White);
 
@@ -161,9 +171,9 @@ void drawTask() {
 		case 1:
 			// Generate string
 			sprintf(str, "Welcome to ESPinball");
-			gdispDrawString(50, 80, str, font1, Black);
+			gdispDrawString(40, 80, str, font1, Black);
 			sprintf(str, "Press E to continue");
-			gdispDrawString(50, 120, str, font1, Black);
+			gdispDrawString(40, 120, str, font2, Black);
 
 			break;
 
@@ -187,35 +197,35 @@ void drawTask() {
 			}
 
 			sprintf(str, "Choose an option:");
-			gdispDrawString(100, 70, str, font1, Black);
+			gdispDrawString(80, 50, str, font1, Black);
 
 			switch (intSelectedMode) {
 					// Singleplayer Mode selected
 					case 1:
 						sprintf(str, "Singleplayer");
-						gdispDrawString(100, 100, str, font1, Blue);
+						gdispDrawString(80, 100, str, font1, Blue);
 						sprintf(str, "Multiplayer");
-						gdispDrawString(100, 120, str, font1, Black);
+						gdispDrawString(80, 130, str, font1, Black);
 						sprintf(str, "Settings");
-						gdispDrawString(100, 140, str, font1, Black);
+						gdispDrawString(80, 160, str, font1, Black);
 						break;
 					// Multiplayer Mode selected
 					case 2:
 						sprintf(str, "Singleplayer");
-						gdispDrawString(100, 100, str, font1, Black);
+						gdispDrawString(80, 100, str, font1, Black);
 						sprintf(str, "Multiplayer");
-						gdispDrawString(100, 120, str, font1, Blue);
+						gdispDrawString(80, 130, str, font1, Blue);
 						sprintf(str, "Settings");
-						gdispDrawString(100, 140, str, font1, Black);
+						gdispDrawString(80, 160, str, font1, Black);
 						break;
 					// Option Mode selected
 					case 3:
 						sprintf(str, "Singleplayer");
-						gdispDrawString(100, 100, str, font1, Black);
+						gdispDrawString(80, 100, str, font1, Black);
 						sprintf(str, "Multiplayer");
-						gdispDrawString(100, 120, str, font1, Black);
+						gdispDrawString(80, 130, str, font1, Black);
 						sprintf(str, "Settings");
-						gdispDrawString(100, 140, str, font1, Blue);
+						gdispDrawString(80, 160, str, font1, Blue);
 						break;
 					default:
 						break;
@@ -224,11 +234,62 @@ void drawTask() {
 			break;
 		case 3: // singleplayer  mode
 			sprintf(str, "Singleplayer mode");
-			gdispDrawString(100, 70, str, font1, Black);
+			gdispDrawString(60, 70, str, font1, Black);
+
+
+			sprintf(str,"displaySizeX %d", displaySizeX);
+			gdispDrawString(70, 100, str, font2, Black);
+			sprintf(str,"displaySizeY %d", displaySizeY);
+			gdispDrawString(70, 120, str, font2, Black);
+
+			//gdispGDrawThickLine(50, 50, 60, 50, Red, 60, TRUE);
+			/****** LEVEL *****/
+			// lever
+			gdispDrawLine(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Blue);
+			gdispDrawLine(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Blue);
+			// obstacles horizontal
+			gdispDrawLine(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black);
+			gdispDrawLine(coordLeftLeverX1 - 50 , coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black);
+			// obstacles vertical
+			gdispDrawLine(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2)- 50, Black);
+			gdispDrawLine(coordLeftLeverX1 - 50 , coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black);
+
+			// boundaries
+			gdispDrawLine(coordRightLeverX1 + 10, displaySizeY, displaySizeX, coordRightLeverY2 +10, Black);
+			gdispDrawLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, displaySizeY, Black);
+
+			// area
+			gdispFillArea(0, 0, displaySizeX, 10, Black);
+			gdispFillArea(0, 0, 10, displaySizeY, Black);
+			//start area
+			gdispFillArea(displaySizeX - 25, 0, displaySizeX, displaySizeY, Black);
+			gdispFillArea(displaySizeX - 20, 75, displaySizeX - 19, displaySizeY/2, White); // bug
+
+
+			//yellow level frame
+			gdispDrawLine(0, 0, displaySizeX, 0, Yellow);
+			gdispDrawLine(0, 0, 0, displaySizeY, Yellow);
+			gdispDrawLine(displaySizeX, 0, displaySizeX, displaySizeY, Yellow); //for reasons outside visible display part
+
+
+
+
+			if(intButtonB){
+				coordRightLeverY1 = coordRightLeverY1Triggered;
+			}
+			else{
+				coordRightLeverY1 = coordRightLeverY1Idle;
+			}
+			if (intButtonD) {
+				coordLeftLeverY2 = coordLeftLeverY2Triggered;
+			} else {
+				coordLeftLeverY2 = coordLeftLeverY2Idle;
+			}
+
 			break;
 		case 4: // multiplayer mode
 			sprintf(str, "Multiplayer mode");
-			gdispDrawString(100, 70, str, font1, Black);
+			gdispDrawString(70, 70, str, font1, Black);
 			break;
 		case 5: // settings mode
 			if (intButtonD){
@@ -236,7 +297,7 @@ void drawTask() {
 				vTaskDelay(50);
 			}
 			sprintf(str, "Settings:");
-			gdispDrawString(100, 70, str, font1, Black);
+			gdispDrawString(70, 70, str, font1, Black);
 			break;
 		default:
 			break;
@@ -282,12 +343,12 @@ void checkButton() {
 	xLastWakeTime = xTaskGetTickCount();
 	const TickType_t tickFramerate = 20;
 
-	int16_t FlagButtonA = 0;
-	int16_t FlagButtonB = 0;
-	int16_t FlagButtonC = 0;
-	int16_t FlagButtonD = 0;
-	int16_t FlagButtonE = 0;
-	int16_t FlagButtonK = 0;
+	int8_t FlagButtonA = 0;
+	int8_t FlagButtonB = 0;
+	int8_t FlagButtonC = 0;
+	int8_t FlagButtonD = 0;
+	int8_t FlagButtonE = 0;
+	int8_t FlagButtonK = 0;
 
 	while (TRUE) {
 
