@@ -24,13 +24,6 @@
 #define LEN(v) sqrt(v[0] * v[0] + v[1] * v[1])
 #define DOT_PRODUCT(v1, v2) v1[0] * v2[0] + v1[1] * v2[1]
 
-typedef struct collision_rect {
-	uint16_t x;
-	uint16_t y;
-	uint16_t width;
-	uint16_t height;
-} collision_rect;
-
 typedef struct collision_circle {
 	uint16_t x;
 	uint16_t y;
