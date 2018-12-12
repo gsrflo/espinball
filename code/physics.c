@@ -24,7 +24,7 @@ static const uint16_t
 		centerY = 120;
 
 double velocity[] = {80, 0};
-double position[] = {100, 10};
+double position[] = {80, 10};
 
 float collisionNormal[] = {0, 0};
 
@@ -36,7 +36,7 @@ uint8_t collisionPolygonsCount = 0;
 
 //uint16_t collisionObjects[200];
 //uint8_t collisionObjectsIndex = 0;
-double collisionSpeedMultiplier = 1.1;
+double collisionSpeedMultiplier = 0.9;
 
 void testPhysicsDrawTask() {
 	TickType_t xLastWakeTime;
@@ -51,14 +51,19 @@ void testPhysicsDrawTask() {
 
 	//drawBitmap(background, 320, 240);
 
-	registerCollisionRectangle(0, 236, 320, 4);
-	registerCollisionRectangle(180, 120, 320, 4);
+	//registerCollisionRectangle(120, 120, 320, 4);
+	//registerCollisionRectangle(0, 250, 320, 4);
+	registerCollisionLine(0, 220, 320, 180);
+	registerCollisionLine(150, 100, 300, 180);
+	registerCollisionLine(80, 240, 0, 0);
 
 	while(TRUE) {
 		calculatePhysics(xWakeTime - xLastWakeTime);
 		drawBall();
-		gdispFillArea(0, 236, 320, 4, Blue);
-		gdispFillArea(180, 120, 320, 4, Blue);
+		//gdispFillArea(120, 120, 320, 4, Green);
+		//gdispFillArea(180, 120, 320, 4, Blue);
+		//gdispDrawLine(0, 200, 320, 180, Blue);
+		//gdispDrawLine(0, 200, 320, 180, Blue);
 
 		//Wait for display to stop writing
 		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
@@ -88,11 +93,11 @@ void calculatePhysics(int deltaTime) {
 	int16_t totalDeltaX = (velocity[0] * deltaSeconds);
 	int16_t totalDeltaY = (velocity[1] * deltaSeconds);
 
-	uint16_t newPositionX = position[0];
-	uint16_t newPositionY = position[1];
+	int16_t newPositionX = position[0];
+	int16_t newPositionY = position[1];
 
 	if (checkCollision(position[0] + totalDeltaX, position[1] + totalDeltaY)) {
-		uint16_t numberSteps = 0;
+		int16_t numberSteps = 0;
 		if (totalDeltaX > totalDeltaY) {
 			numberSteps = totalDeltaX;
 		} else {
@@ -114,8 +119,8 @@ void calculatePhysics(int deltaTime) {
 			dy = newDy;
 		}
 		double dot = DOT_PRODUCT(velocity, collisionNormal);
-		velocity[0] = velocity[0] - 2 * collisionSpeedMultiplier * dot * collisionNormal[0];
-		velocity[1] = velocity[1] - 2 * collisionSpeedMultiplier * dot * collisionNormal[1];
+		velocity[0] = 1 * velocity[0] - 2 * dot * collisionNormal[0];
+		velocity[1] = 1 * velocity[1] - 2 * dot * collisionNormal[1];
 
 	} else {
 		newPositionX += totalDeltaX;
@@ -147,7 +152,7 @@ uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_c
 }
 
 uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_poly *poly) {
-	for (uint8_t lineIndex = 0; lineIndex < poly->pointCount; lineIndex++) {
+	for (uint8_t lineIndex = 0; lineIndex < poly->pointCount - 1; lineIndex++) {
 		uint16_t *p1;
 		uint16_t *p2;
 
@@ -172,30 +177,33 @@ uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_
 	return FALSE;
 }
 
-uint8_t checkLineCollision(uint16_t positionX, uint16_t positionY, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+uint8_t checkLineCollision(volatile uint16_t positionX, volatile uint16_t positionY, volatile uint16_t x1, volatile uint16_t y1, volatile uint16_t x2, volatile uint16_t y2) {
 	//Get length of the line
-	float lineLen = DIST(x1, y1, x2, y2);
+	volatile float lineLen = DIST(x1, y1, x2, y2);
 
 	//Get dot product of the line and circle
-	float dot = (((positionX - x1) * (x2 - x1)) + ((positionY - y1) * (y2 - y1))) / pow(lineLen, 2);
+	volatile float dot = (((positionX - x1) * (x2 - x1)) + ((positionY - y1) * (y2 - y1))) / pow(lineLen, 2);
 
 	//Find the closest point on the line
-	float closestX = x1 + (dot * (x2 - x1));
-	float closestY = y1 + (dot * (y2 - y1));
+	volatile float closestX = x1 + (dot * (x2 - x1));
+	volatile float closestY = y1 + (dot * (y2 - y1));
+
+	gdispDrawLine(x1, y1, x2, y2, Green);
+	gdispFillCircle(closestX, closestY, 2, Red);
 
 	//Get distance from the point to the two ends of the line
-	float d1 = DIST(closestX, closestY, x1, y1);
-	float d2 = DIST(closestX, closestY, x2, y2);
+	volatile float d1 = DIST(closestX, closestY, x1, y1);
+	volatile float d2 = DIST(closestX, closestY, x2, y2);
 
 	//Since floats are so minutely accurate, add a little buffer zone that will give collision
-	float buffer = 0.1; // higher # = less accurate
+	volatile float buffer = 0.1; // higher # = less accurate
 
 	//If the two distances are equal to the line's length, the point is on the line!
 	//note we use the buffer here to give a range, rather than one #
-	uint8_t pointOnLine = d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer;
+	volatile uint8_t pointOnLine = d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer;
 
 	//Is the closest point is within the ball?
-	uint8_t pointInBall = DIST(closestX, closestY, positionX, positionY) <= BALL_RADIUS;
+	volatile uint8_t pointInBall = DIST(closestX, closestY, positionX, positionY) <= BALL_RADIUS;
 
 	return pointOnLine && pointInBall;
 }

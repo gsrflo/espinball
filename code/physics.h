@@ -14,7 +14,7 @@
 #include <math.h>
 
 #define BALL_RADIUS 10
-#define GRAVITY 200
+#define GRAVITY 250
 
 #define COLLISION_OBJECT_RECT 0
 #define COLLISION_OBJECT_CIRCLE 1
@@ -35,6 +35,7 @@ typedef struct collision_poly {
 	uint16_t points[10];
 } collision_poly;
 
+void testPhysicsDrawTask();
 void calculatePhysics(int deltaTime);
 
 uint8_t checkCollision(uint16_t positionX, uint16_t positionY);
