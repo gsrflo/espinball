@@ -23,16 +23,10 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
-QueueHandle_t ESPL_RxQueue; // Already defined in ESPL_Functions.h
-SemaphoreHandle_t ESPL_DisplayReady;
-
 double velocity[] = {80, 0};
 double position[] = {100, 10};
 
 float collisionNormal[] = {0, 0};
-
-collision_rect collisionRects[20] = {};
-uint8_t collisionRectsCount = 0;
 
 collision_circle collisionCircles[20] = {};
 uint8_t collisionCirclesCount = 0;
@@ -44,7 +38,7 @@ uint8_t collisionPolygonsCount = 0;
 //uint8_t collisionObjectsIndex = 0;
 double collisionSpeedMultiplier = 1.1;
 
-void drawTask() {
+void testPhysicsDrawTask() {
 	TickType_t xLastWakeTime;
 	TickType_t xWakeTime;
 	xWakeTime = xTaskGetTickCount();
@@ -133,12 +127,6 @@ void calculatePhysics(int deltaTime) {
 }
 
 uint8_t checkCollision(uint16_t positionX, uint16_t positionY) {
-	for (int i = 0; i < collisionRectsCount; i++) {
-		if (checkRectangleCollision(positionX, positionY, &collisionRects[i])) {
-			return TRUE;
-		}
-	}
-
 	for (int i = 0; i < collisionCirclesCount; i++) {
 		if (checkCircleCollision(positionX, positionY, &collisionCircles[i])) {
 			return TRUE;
@@ -152,12 +140,6 @@ uint8_t checkCollision(uint16_t positionX, uint16_t positionY) {
 	}
 
 	return FALSE;
-}
-
-uint8_t checkRectangleCollision(uint16_t positionX, uint16_t positionY, collision_rect *rect) {
-	uint8_t xCollides = positionX + BALL_RADIUS >= rect->x && positionX - BALL_RADIUS <= rect->x + rect->width;
-	uint8_t yCollides = positionY + BALL_RADIUS >= rect->y && positionY - BALL_RADIUS <= rect->y + rect->height;
-	return xCollides && yCollides;
 }
 
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle) {
@@ -271,7 +253,7 @@ void registerCollisionPolygon(point *points, uint8_t pointCount) {
 	}
 }
 
-int main() {
+/*int main() {
 	// Initialize Board functions and graphics
 	ESPL_SystemInit();
 
@@ -282,17 +264,4 @@ int main() {
 
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
-}
-
-/*
- *  Hook definitions needed for FreeRTOS to function.
- */
-void vApplicationIdleHook() {
-	while (TRUE) {
-	};
-}
-
-void vApplicationMallocFailedHook() {
-	while(TRUE) {
-	};
-}
+}*/

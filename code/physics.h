@@ -38,7 +38,6 @@ typedef struct collision_poly {
 void calculatePhysics(int deltaTime);
 
 uint8_t checkCollision(uint16_t positionX, uint16_t positionY);
-uint8_t checkRectangleCollision(uint16_t positionX, uint16_t positionY, collision_rect *rect);
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle);
 uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_poly *poly);
 uint8_t checkLineCollision(uint16_t positionX, uint16_t positionY, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
