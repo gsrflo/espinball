@@ -59,8 +59,12 @@ int8_t intButtonA = 0,
 // stats
 int8_t intPlayerLevel = 1;
 int32_t intScore = 0;
+int32_t intScoreFirst = 0;
+int32_t intScoreSecond = 0;
+int32_t intScoreThird = 0;
 int32_t intPassedTime = 0;
 int8_t intFPS = 0;
+int8_t intLifes = 3;
 
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -235,7 +239,7 @@ void drawTask() {
 			} else if (intButtonB && intSelectedMode == 2) {
 				intDrawScreen = 4; 		// multiplayer mode chosen
 			} else if (intButtonB && intSelectedMode == 3) {
-				intDrawScreen = 5; 		// settings mode chosen
+				intDrawScreen = 5; 		// high score mode chosen
 			} else if (intButtonD){
 				intDrawScreen = 1;
 			}
@@ -250,7 +254,7 @@ void drawTask() {
 						gdispDrawString(80, 100, str, font1, Blue);
 						sprintf(str, "Multiplayer");
 						gdispDrawString(80, 130, str, font1, Black);
-						sprintf(str, "Settings");
+						sprintf(str, "High Score");
 						gdispDrawString(80, 160, str, font1, Black);
 						break;
 					// Multiplayer Mode selected
@@ -259,16 +263,16 @@ void drawTask() {
 						gdispDrawString(80, 100, str, font1, Black);
 						sprintf(str, "Multiplayer");
 						gdispDrawString(80, 130, str, font1, Blue);
-						sprintf(str, "Settings");
+						sprintf(str, "High Score");
 						gdispDrawString(80, 160, str, font1, Black);
 						break;
-					// Option Mode selected
+					// Highscore Mode selected
 					case 3:
 						sprintf(str, "Singleplayer");
 						gdispDrawString(80, 100, str, font1, Black);
 						sprintf(str, "Multiplayer");
 						gdispDrawString(80, 130, str, font1, Black);
-						sprintf(str, "Settings");
+						sprintf(str, "High Score");
 						gdispDrawString(80, 160, str, font1, Blue);
 						break;
 					default:
@@ -356,6 +360,9 @@ void drawTask() {
 			gdispDrawString(coordGameAreaX2 - 60, coordGameAreaY2 - 10, str, font3, Black);
 			sprintf(str, "FPS: %d", intFPS);
 			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY2 - 10, str, font3, Black);
+			sprintf(str, "Lifes: %d", intLifes);
+			gdispDrawString(coordGameAreaX2 - 50, coordGameAreaY1 + 10, str, font3, Black);
+
 
 			sprintf(str,"displaySizeX %d", displaySizeX);
 			gdispDrawString(70, 100, str, font2, Black);
@@ -382,13 +389,21 @@ void drawTask() {
 			sprintf(str, "Multiplayer mode");
 			gdispDrawString(70, 70, str, font1, Black);
 			break;
-		case 5: // settings mode
+		case 5: // high score mode
 			if (intButtonD){
 				intDrawScreen = 2;
 				vTaskDelay(50);
 			}
-			sprintf(str, "Settings:");
+			sprintf(str, "High Scores:");
 			gdispDrawString(70, 70, str, font1, Black);
+
+			sprintf(str, "1: %d", intScoreFirst);
+			gdispDrawString(70, 100, str, font3, Black);
+			sprintf(str, "2: %d", intScoreSecond);
+			gdispDrawString(70, 120, str, font3, Black);
+			sprintf(str, "3: %d", intScoreThird);
+			gdispDrawString(70, 140, str, font3, Black);
+
 			break;
 		default:
 			break;
