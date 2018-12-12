@@ -30,7 +30,8 @@ TaskHandle_t	drawTaskHandle = NULL,
 				checkJoystickHandle = NULL,
 				checkButtonHandle = NULL,
 				TaskControllerHandle = NULL,
-				UserStatsHandle = NULL;
+				UserStatsHandle = NULL,
+				UserActionsHandle = NULL;
 
 
 
@@ -51,7 +52,8 @@ int8_t intSelectedMode = 1;
 int8_t intTableStart = 2;
 int8_t intTableLeft = 1;
 int8_t intTableRight = 3;
-int8_t intActTable = 1;
+int8_t intActTable = 3;
+int16_t intGainStartLever = 0;
 
 // global button variables
 int8_t intButtonA = 0,
@@ -89,6 +91,7 @@ int main() {
 	// interface tasks
 	xTaskCreate(checkJoystick, "checkJoystick", 1000, NULL, 5, &checkJoystickHandle);
 	xTaskCreate(checkButton, "checkButton", 1000, NULL, 5, &checkButtonHandle);
+	xTaskCreate(UserActions, "UserActions", 1000, NULL, 6, &UserActionsHandle);
 	// drawing tasks
 	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
 
@@ -332,18 +335,18 @@ void drawTask() {
 				// red holes to change table
 				gdispFillCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
 				gdispFillCircle(coordHoleRightX, coordHoleRightY, 10, Red);
-				gdispDrawThickLine(coordHoleLeftX - 20, 50, coordHoleLeftX, 70, Black, 5, TRUE); 		// left bowl
-				gdispDrawThickLine(coordHoleLeftX, 70, coordHoleLeftX + 20, 50, Black, 5, TRUE);		// left bowl
-				gdispDrawThickLine(coordHoleRightX - 20, 50, coordHoleRightX,70, Black, 5, TRUE);		// right bowl
-				gdispDrawThickLine(coordHoleRightX, 70, coordHoleRightX + 20,50, Black, 5, TRUE);		// right bowl
+				gdispDrawThickLine(coordHoleLeftX - 30, 32, coordHoleLeftX + 30, 35, Black, 5, TRUE); 		// left bowl
+				gdispDrawThickLine(coordHoleLeftX + 30, 35, coordHoleLeftX + 30, 60, Black, 5, TRUE);		// left bowl
+				gdispDrawThickLine(coordHoleRightX - 30, 35, coordHoleRightX + 30, 32, Black, 5, TRUE);		// right bowl
+				gdispDrawThickLine(coordHoleRightX - 30 , 35, coordHoleRightX - 30, 60, Black, 5, TRUE);		// right bowl
 				// bumper
-				gdispDrawThickLine(coordHoleLeftX + 2, 70,coordHoleLeftX + 20 + 2, 50, Green, 2, FALSE);// left bumper bowl
-				gdispDrawThickLine(coordHoleRightX - 20 - 2, 50, coordHoleRightX - 2, 70, Green, 2, FALSE);// right bumper bowl
-				// upper bumper
-				gdispDrawThickLine(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5, TRUE); 		// left upper bumper
-				gdispDrawThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2, FALSE);
-				gdispDrawThickLine(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5, TRUE);		// right upper bumper
-				gdispDrawThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, FALSE);
+				gdispDrawThickLine(coordHoleLeftX + 30 + 2, 35 + 2, coordHoleLeftX + 30 + 2, 60 - 2, Green, 2, FALSE);// left bumper bowl
+				gdispDrawThickLine(coordHoleRightX - 30 - 3, 35 + 2, coordHoleRightX - 30 - 3, 60 - 2, Green, 2, FALSE);// right bumper bowl
+				// lower bumper
+				gdispDrawThickLine(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5, TRUE); 		// left upper bumper2s
+				gdispDrawThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2, FALSE);
+				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5, TRUE);		// right upper bumper
+				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, FALSE);
 
 				// coins
 				gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
@@ -352,34 +355,35 @@ void drawTask() {
 				gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 				gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
 
-				gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 - 10, coordGameAreaY1 + 10, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 + 10, coordGameAreaY1 + 10, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY1 + 10, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY1 + 10, coinRadius, Yellow);
 
-				gdispFillCircle(coordGameAreaX2 / 2 + 90, coordGameAreaY2 / 2, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 - 15, coordGameAreaY1 + 25, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 + 15, coordGameAreaY1 + 25, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY1 + 25, coinRadius, Yellow);
+				gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);
+
 
 			} else if (intActTable == intTableRight) {
 				// red holes to change table
-				gdispFillCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
-				gdispFillCircle(coordHoleRightX, coordHoleRightY, 10, Red);
-				gdispDrawThickLine(coordHoleLeftX - 20, 50, coordHoleLeftX, 70, Black, 5, TRUE); 		// left bowl
-				gdispDrawThickLine(coordHoleLeftX, 70, coordHoleLeftX + 20, 50, Black, 5, TRUE);		// left bowl
-				gdispDrawThickLine(coordHoleRightX - 20, 50, coordHoleRightX,70, Black, 5, TRUE);		// right bowl
-				gdispDrawThickLine(coordHoleRightX, 70, coordHoleRightX + 20,50, Black, 5, TRUE);		// right bowl
-				// bumper
-				gdispDrawThickLine(coordHoleLeftX + 2, 70,coordHoleLeftX + 20 + 2, 50, Green, 2, FALSE);// left bumper bowl
-				gdispDrawThickLine(coordHoleRightX - 20 - 2, 50, coordHoleRightX - 2, 70, Green, 2, FALSE);// right bumper bowl
-				// upper bumper
-				gdispDrawThickLine(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5, TRUE); 		// left upper bumper
-				gdispDrawThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2, FALSE);
-				gdispDrawThickLine(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5, TRUE);		// right upper bumper
-				gdispDrawThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, FALSE);
+				gdispFillCircle(coordGameAreaX2/2 - 20, coordGameAreaY1 + 20, 10, Red);
+				gdispFillCircle(coordGameAreaX2/2 + 20, coordGameAreaY1 + 20, 10, Red);
+				gdispDrawThickLine(coordGameAreaX2/2, coordGameAreaY1, coordGameAreaX2/2, coordGameAreaY1 + 40, Black, 5, TRUE);
+				gdispDrawThickLine(coordGameAreaX2/2 - 30, coordGameAreaY1, coordGameAreaX2/2 - 50, coordGameAreaY1 + 40, Black, 5, TRUE);
+				gdispDrawThickLine(coordGameAreaX2/2 + 30, coordGameAreaY1, coordGameAreaX2/2 + 50, coordGameAreaY1 + 40, Black, 5, TRUE);
+
+				// lower bumper
+				gdispDrawThickLine(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5, TRUE); 		// left upper bumper2s
+				gdispDrawThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2, FALSE);
+				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5, TRUE);		// right upper bumper
+				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, FALSE);
+				// circle bumper
+				gdispFillCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Pink);
+				gdispDrawCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Green);
+				gdispFillCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Pink);
+				gdispDrawCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Green);
 
 				// coins
 				gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
@@ -397,92 +401,59 @@ void drawTask() {
 				gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 				gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 
-				gdispFillCircle(coordGameAreaX2 / 2 + 90, coordGameAreaY2 / 2, coinRadius, Yellow);
-				gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 			}
 
 			/***********************************/
-			/****necessary for each table *****/
+			/**** necessary for each table *****/
 			/***********************************/
 			// lever
-			gdispDrawThickLine(coordRightLeverX1, coordRightLeverY1,
-					coordRightLeverX2, coordRightLeverY2, Gray, thickLever,
-					TRUE);
-			gdispDrawThickLine(coordLeftLeverX1, coordLeftLeverY1,
-					coordLeftLeverX2, coordLeftLeverY2, Gray, thickLever,
-					TRUE);
+			gdispDrawThickLine(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Gray, thickLever, TRUE);
+			gdispDrawThickLine(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Gray, thickLever, TRUE);
 			// obstacles horizontal
-			gdispDrawThickLine(coordRightLeverX2, coordRightLeverY2,
-					coordRightLeverX2 + 50,
-					coordRightLeverY2
-							- (coordRightLeverY1Idle - coordRightLeverY2),
-					Black, thickLever, TRUE);
-			gdispDrawThickLine(coordLeftLeverX1 - 50,
-					coordLeftLeverY1
-							- (coordLeftLeverY2Idle - coordLeftLeverY1),
-					coordLeftLeverX1, coordLeftLeverY1, Black, thickLever,
-					TRUE);
+			gdispDrawThickLine(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black, thickLever, TRUE);
+			gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black, thickLever, TRUE);
 			// obstacles vertical
-			gdispDrawThickLine(coordRightLeverX2 + 50,
-					coordRightLeverY2
-							- (coordRightLeverY1Idle - coordRightLeverY2),
-					coordRightLeverX2 + 50,
-					coordRightLeverY2
-							- (coordRightLeverY1Idle - coordRightLeverY2) - 50,
-					Black, thickLever, TRUE);
-			gdispDrawThickLine(coordLeftLeverX1 - 50,
-					coordLeftLeverY1
-							- (coordLeftLeverY2Idle - coordLeftLeverY1),
-					coordLeftLeverX1 - 50,
-					coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1)
-							- 50, Black, thickLever, TRUE);
+			gdispDrawThickLine(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever, TRUE);
+			gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever, TRUE);
 
 
 			// boundaries
-			gdispDrawThickLine(coordRightLeverX1 + 10, coordGameAreaY2,
-					coordGameAreaX2, coordRightLeverY2 + 10, Black, 5,
-					FALSE);
-			gdispDrawThickLine(0, coordLeftLeverY1 + 10,
-					coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5,
-					FALSE);
+			gdispDrawThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5, FALSE);
+			gdispDrawThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5, FALSE);
 
 			// level frame
 			gdispDrawThickLine(0, 0, displaySizeX, 0, Black, 3, FALSE);
 			gdispDrawThickLine(0, 0, 0, displaySizeY, Black, 3, FALSE);
 			// start area
-			gdispDrawThickLine(coordStartAreaX, 0, coordStartAreaX, 60,
-					Black, 5, FALSE); //upper lines
-			gdispDrawThickLine(coordStartAreaX, 58,
-					coordStartAreaX + startAreaSize / 3, 63, Black, 5,
-					FALSE); //upper lines curve
-			gdispDrawThickLine(coordStartAreaX + startAreaSize / 3, 63,
-					coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5,
-					FALSE); //upper lines curve
-			gdispDrawThickLine(coordStartAreaX + 2 * startAreaSize / 3, 73,
-					coordStartAreaX + 3 * startAreaSize / 3, 90, Black, 5,
-					FALSE); //upper lines curve
-			gdispDrawThickLine(coordStartAreaX, 90, coordStartAreaX,
-					displaySizeY, Black, 5, FALSE); //lower lines
-			gdispDrawThickLine(displaySizeX, 0, displaySizeX, displaySizeY,
-					Black, 5, FALSE);
+			gdispDrawThickLine(coordStartAreaX, 0, coordStartAreaX, 60,Black, 5, FALSE); //upper lines
+			gdispDrawThickLine(coordStartAreaX, 58,coordStartAreaX + startAreaSize / 3, 63, Black, 5,FALSE); //upper lines curve
+			gdispDrawThickLine(coordStartAreaX + startAreaSize / 3, 63,coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5,FALSE); //upper lines curve
+			gdispDrawThickLine(coordStartAreaX + 2 * startAreaSize / 3, 73,coordStartAreaX + 3 * startAreaSize / 3, 90, Black, 5,FALSE); //upper lines curve
+			gdispDrawThickLine(coordStartAreaX, 90, coordStartAreaX,displaySizeY, Black, 5, FALSE); //lower lines
+			gdispDrawThickLine(displaySizeX, 0, displaySizeX, displaySizeY,Black, 5, FALSE);
+			//start lever
+			gdispDrawThickLine(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3, TRUE);
+			gdispDrawThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1, FALSE);
 
 
 			//***STATS***
 			sprintf(str, "LEVEL: %d", intPlayerLevel);
-			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 5, str,
-					font3, Black);
+			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 5, str, font3, Black);
 			sprintf(str, "SCORE: %d", intScore);
-			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 20, str,
-					font3, Black);
+			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 20, str, font3, Black);
 			sprintf(str, "SEC: %d", intPassedTime);
-			gdispDrawString(coordGameAreaX2 - 60, coordGameAreaY2 - 10, str,
-					font3, Black);
+			gdispDrawString(coordGameAreaX2 - 60, coordGameAreaY2 - 10, str, font3, Black);
 			sprintf(str, "FPS: %d", intFPS);
-			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY2 - 10, str,
-					font3, Black);
-			sprintf(str, "Lifes: %d", intLifes);
-			gdispDrawString(coordGameAreaX2 - 50, coordGameAreaY1 + 10, str,
-					font3, Black);
+			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY2 - 10, str, font3, Black);
+			sprintf(str, "LIFES: %d", intLifes);
+			gdispDrawString(coordGameAreaX2 - 55, coordGameAreaY1 + 10, str, font3, Black);
+
+			//for debugging
+			/*sprintf(str, "JoystickY: %d", joystickPosition.y);
+			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 50, str, font3, Black);
+			sprintf(str, "Gain: %d", intGainStartLever);
+			gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 70, str, font3, Black);*/
+
 
 			// display size for debug
 			sprintf(str, "displaySizeX %d", displaySizeX);
@@ -694,12 +665,32 @@ void uartReceive() {
 		}
 	}
 }
+
+void UserActions(){
+	struct coord joystickPosition; // joystick queue input buffer
+	while (TRUE) {
+		while (xQueueReceive(JoystickQueue, &joystickPosition, 0) == pdTRUE);
+
+		// game starts
+		// joystick Position Y on  127 if idle, 0 if up directed, 255 if down directed
+		if (joystickPosition.y > 127) {
+			intGainStartLever = (joystickPosition.y - 127) / 4;
+		} else if (joystickPosition.y <= 127) {
+			intGainStartLever = 0;
+		}
+
+	vTaskDelay(10);
+	}
+}
 /*------------------------------------------------------------------------------------------------------------------------------*/
 void UserStats() {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
+
 	while(TRUE){
+
+		// user stats
 		if (intScore >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
 		} else if (intScore >= 3000 && intPlayerLevel <= 2) {
@@ -719,7 +710,7 @@ void UserStats() {
 		}
 
 
-	// game ends
+		// game ends
 		if (intLifes <= 0) {
 			//ToDo: Write On Display "Game Over"
 
