@@ -52,8 +52,10 @@ int8_t intSelectedMode = 1;
 int8_t intTableStart = 2;
 int8_t intTableLeft = 1;
 int8_t intTableRight = 3;
-int8_t intActTable = 3;
+int8_t intActTable = 2;		//select [1:3] for table on display
+int8_t intScreenBeforePause = 0;
 int16_t intGainStartLever = 0;
+int8_t intAnimation = 0; //select 1 for animation1 or 2 for animation 2
 
 // global button variables
 int8_t intButtonA = 0,
@@ -139,8 +141,6 @@ void TaskController() {
 				break;
 
 			case 3:		//Screen #3: Single Player
-
-
 				SwitchScreenFlag = 1;		//indicates that screen just changed
 				break;
 			default:
@@ -161,6 +161,7 @@ void drawTask() {
 	// FPS
 	TickType_t xLastWakeTime;
 	int8_t intFrameCounter = 0;
+	int16_t intTickOnLastCall = 0;
 
 	font_t font1, font2, font3; // Load font for ugfx
 	font1 = gdispOpenFont("DejaVuSans24*");
@@ -184,7 +185,6 @@ void drawTask() {
 	const int16_t coordHoleRightY = coordGameAreaY1 + 50;
 
 
-
 	//Moving parts
 	 int coordRightLeverY1Triggered = 170;
 	 int coordRightLeverY1Idle = 210;
@@ -200,6 +200,14 @@ void drawTask() {
 	 int coordLeftLeverX2 = coordGameAreaX2 / 2 - 20;
 	 int coordLeftLeverY2 = 220; //coordLeftLeverY2Idle;
 
+	 //animation
+	 int32_t intAnimationTime = 0;
+	 int coordAnimationOneX = 0;
+	 int coordAnimationOneY = 50;
+	 int coordAnimationTwoX1 = 0;
+	 int coordAnimationTwoY1 = 0;
+	 int coordAnimationTwoX2 = 150;
+	 int coordAnimationTwoY2 = 50;
 
 
 	// Start endless loop
@@ -207,8 +215,8 @@ void drawTask() {
 		while (xQueueReceive(JoystickQueue, &joystickPosition, 0) == pdTRUE);
 		//FPS
 		/*
-		if(xLastWakeTime - xTaskGetTickCount > 1000){
-			xLastWakeTime = xTaskGetTickCount();
+		if(xTaskGetTickCount - intTickOnLastCall) >= 1000){
+			intTickOnLastCall = xTaskGetTickCount();
 			intFPS = intFrameCounter;
 			intFrameCounter = 0;
 		}
@@ -380,10 +388,10 @@ void drawTask() {
 				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5, TRUE);		// right upper bumper
 				gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, FALSE);
 				// circle bumper
-				gdispFillCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Pink);
-				gdispDrawCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Green);
-				gdispFillCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Pink);
-				gdispDrawCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Green);
+				gdispFillCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Silver);
+				gdispDrawCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Black);
+				gdispFillCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Silver);
+				gdispDrawCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Black);
 
 				// coins
 				gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
@@ -403,6 +411,7 @@ void drawTask() {
 
 			}
 
+
 			/***********************************/
 			/**** necessary for each table *****/
 			/***********************************/
@@ -415,7 +424,6 @@ void drawTask() {
 			// obstacles vertical
 			gdispDrawThickLine(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever, TRUE);
 			gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever, TRUE);
-
 
 			// boundaries
 			gdispDrawThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5, FALSE);
@@ -435,6 +443,56 @@ void drawTask() {
 			gdispDrawThickLine(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3, TRUE);
 			gdispDrawThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1, FALSE);
 
+			//***ANIMATIONS***
+
+			// animation 1 stops after 1000 calls
+			// animation 2 stops after 3000 calls
+			switch(intAnimation){
+			case 1:
+				if (intAnimationTime < 1000)
+				{
+					sprintf(str, "NICE!");
+					gdispDrawString(coordAnimationOneX, coordAnimationOneY, str, font1, Blue);
+					coordAnimationOneX++;
+					intAnimationTime++;
+				}
+				else {
+					intAnimationTime = 0;
+					coordAnimationOneX = 0;
+				}
+				break;
+			case 2:
+				if (intAnimationTime < 3000) {
+					if (intAnimationTime % 9){
+						gdispFillArea(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Lime);
+						sprintf(str, "INSANE!!!");
+						gdispDrawString(coordAnimationTwoX1 + 10, coordAnimationTwoY1 + 15, str, font1, Red);
+					}
+					else if (intAnimationTime % 8) {
+						gdispFillArea(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Blue);
+						sprintf(str, "INSANE!!!");
+						gdispDrawString(coordAnimationTwoX1 + 10, coordAnimationTwoY1 + 15, str, font1, Red);
+					}
+					gdispDrawBox(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Black);
+
+					coordAnimationTwoX1++;
+					coordAnimationTwoY1++;
+					//coordAnimationTwoX2++;
+					//coordAnimationTwoY2++;
+					intAnimationTime++;
+				} else {
+					intAnimationTime = 0;
+					coordAnimationTwoX1 = 0;
+					coordAnimationTwoY1 = 0;
+					//coordAnimationTwoX2 = 150;
+					//coordAnimationTwoY2 = 50;
+				}
+				break;
+			case 3:
+				break;
+			default:
+				break;
+			}
 
 			//***STATS***
 			sprintf(str, "LEVEL: %d", intPlayerLevel);
@@ -473,8 +531,8 @@ void drawTask() {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;
 			}
 
-
 			break;
+
 
 		case 4: // multiplayer mode
 			sprintf(str, "Multiplayer mode");
@@ -485,6 +543,7 @@ void drawTask() {
 				intDrawScreen = 2;
 				vTaskDelay(50);
 			}
+
 			sprintf(str, "High Scores:");
 			gdispDrawString(70, 70, str, font1, Black);
 
@@ -496,15 +555,20 @@ void drawTask() {
 			gdispDrawString(70, 140, str, font3, Black);
 
 			break;
+		case 6: //pause mode
+			gdispClear(Black);
+			sprintf(str, "PAUSE");
+			gdispDrawString(coordGameAreaX2 / 2 - 10, coordGameAreaY2 / 2 - 10,	str, font1, Red);
+			break;
 		default:
 			break;
 		}
-
 
 		// Wait for display to stop writing
 		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
 		// swap buffers
 		ESPL_DrawLayer();
+
 
 	}
 }
@@ -538,7 +602,7 @@ void checkJoystick() {
 void checkButton() {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
-	const TickType_t tickFramerate = 20;
+	const TickType_t tickFramerate = 50;
 
 	int8_t FlagButtonA = 0;
 	int8_t FlagButtonB = 0;
@@ -678,6 +742,19 @@ void UserActions(){
 		} else if (joystickPosition.y <= 127) {
 			intGainStartLever = 0;
 		}
+		// to pause the game
+		if (intButtonK && (intDrawScreen == 3 || intDrawScreen == 4 || intDrawScreen == 6)) {
+			if (intDrawScreen != 6){
+				intScreenBeforePause = intDrawScreen;
+				intDrawScreen = 6;
+			}
+			else {
+				intDrawScreen = intScreenBeforePause;
+			}
+			//stop time
+			//stop gravity
+			vTaskDelay(500);
+		}
 
 	vTaskDelay(10);
 	}
@@ -702,11 +779,10 @@ void UserStats() {
 		if (intDrawScreen == 3 || intDrawScreen == 4) { //if single player or multi player selected, start timer
 			intPassedTime++;
 			vTaskDelayUntil(&xLastWakeTime, 1000);
-		} else {
+		} else if (intDrawScreen != 6) { //reset stats except pause screen is active
 			intPassedTime = 0;
 			intScore = 0;
 			intPlayerLevel = 1;
-
 		}
 
 
