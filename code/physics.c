@@ -24,9 +24,10 @@ static const uint16_t
 		centerY = 120;
 
 double velocity[] = {80, 0};
-double position[] = {100, 10};
+double position[] = {80, 10};
 
-float collisionNormal[] = {0, 0};
+double collisionPoint[] = {0, 0};
+double collisionNormal[] = {0, 0};
 
 collision_circle collisionCircles[20] = {};
 uint8_t collisionCirclesCount = 0;
@@ -36,7 +37,7 @@ uint8_t collisionPolygonsCount = 0;
 
 //uint16_t collisionObjects[200];
 //uint8_t collisionObjectsIndex = 0;
-double collisionSpeedMultiplier = 1.1;
+double collisionSpeedMultiplier = 0.8;
 
 void testPhysicsDrawTask() {
 	TickType_t xLastWakeTime;
@@ -51,14 +52,20 @@ void testPhysicsDrawTask() {
 
 	//drawBitmap(background, 320, 240);
 
-	registerCollisionRectangle(0, 236, 320, 4);
-	registerCollisionRectangle(180, 120, 320, 4);
+	//registerCollisionRectangle(120, 120, 320, 4);
+	//registerCollisionRectangle(0, 250, 320, 4);
+	registerCollisionLine(0, 220, 320, 180);
+	registerCollisionLine(150, 100, 300, 180);
+	registerCollisionLine(80, 240, 0, 0);
+	//registerCollisionLine(80, 240, 0, 0);
 
 	while(TRUE) {
 		calculatePhysics(xWakeTime - xLastWakeTime);
 		drawBall();
-		gdispFillArea(0, 236, 320, 4, Blue);
-		gdispFillArea(180, 120, 320, 4, Blue);
+		//gdispFillArea(120, 120, 320, 4, Green);
+		//gdispFillArea(180, 120, 320, 4, Blue);
+		//gdispDrawLine(0, 200, 320, 180, Blue);
+		//gdispDrawLine(0, 200, 320, 180, Blue);
 
 		//Wait for display to stop writing
 		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
@@ -88,11 +95,11 @@ void calculatePhysics(int deltaTime) {
 	int16_t totalDeltaX = (velocity[0] * deltaSeconds);
 	int16_t totalDeltaY = (velocity[1] * deltaSeconds);
 
-	uint16_t newPositionX = position[0];
-	uint16_t newPositionY = position[1];
+	int16_t newPositionX = position[0];
+	int16_t newPositionY = position[1];
 
 	if (checkCollision(position[0] + totalDeltaX, position[1] + totalDeltaY)) {
-		uint16_t numberSteps = 0;
+		int16_t numberSteps = 0;
 		if (totalDeltaX > totalDeltaY) {
 			numberSteps = totalDeltaX;
 		} else {
@@ -113,9 +120,22 @@ void calculatePhysics(int deltaTime) {
 			dx = newDx;
 			dy = newDy;
 		}
-		double dot = DOT_PRODUCT(velocity, collisionNormal);
-		velocity[0] = velocity[0] - 2 * collisionSpeedMultiplier * dot * collisionNormal[0];
-		velocity[1] = velocity[1] - 2 * collisionSpeedMultiplier * dot * collisionNormal[1];
+
+		volatile double dot = DOT_PRODUCT(velocity, collisionNormal);
+		velocity[0] = 1 * velocity[0] - 2 * dot * collisionNormal[0];
+		velocity[1] = 1 * velocity[1] - 2 * dot * collisionNormal[1];
+		/*if (velocity[0] > 150) {
+			velocity[0] = 150;
+		}
+		if (velocity[0]< -250) {
+					velocity[0] = -250;
+				}
+		if (velocity[1] > 250) {
+					velocity[1] = 250;
+				}
+				if (velocity[1]< -250) {
+							velocity[1] = -250;
+						}*/
 
 	} else {
 		newPositionX += totalDeltaX;
@@ -146,8 +166,8 @@ uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_c
 	return abs(circle->x - positionX) <= circle->radius && abs(circle->y - positionY) <= circle->radius;
 }
 
-uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_poly *poly) {
-	for (uint8_t lineIndex = 0; lineIndex < poly->pointCount; lineIndex++) {
+uint8_t checkPolygonCollision(volatile uint16_t positionX, volatile uint16_t positionY, collision_poly *poly) {
+	for (uint8_t lineIndex = 0; lineIndex < poly->pointCount - 1; lineIndex++) {
 		uint16_t *p1;
 		uint16_t *p2;
 
@@ -163,8 +183,13 @@ uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_
 			collisionNormal[0] = -(p2[1] - p1[1]);
 			collisionNormal[1] = p2[0] - p1[0];
 
-			collisionNormal[0] = -collisionNormal[0] / LEN(collisionNormal);
-			collisionNormal[1] = -collisionNormal[1] / LEN(collisionNormal);
+			double len = LEN(collisionNormal);
+			collisionNormal[0] = collisionNormal[0] / len;
+			collisionNormal[1] = collisionNormal[1] / len;
+
+			if (DEBUG) {
+				gdispDrawLine(collisionPoint[0], collisionPoint[1], collisionPoint[0] + collisionNormal[0] * 50, collisionPoint[1] + collisionNormal[1] * 50, Blue);
+			}
 			return TRUE;
 		}
 	}
@@ -172,32 +197,43 @@ uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_
 	return FALSE;
 }
 
-uint8_t checkLineCollision(uint16_t positionX, uint16_t positionY, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+uint8_t checkLineCollision(volatile uint16_t positionX, volatile uint16_t positionY, volatile uint16_t x1, volatile uint16_t y1, volatile uint16_t x2, volatile uint16_t y2) {
 	//Get length of the line
-	float lineLen = DIST(x1, y1, x2, y2);
+	volatile double lineLen = DIST(x1, y1, x2, y2);
 
 	//Get dot product of the line and circle
-	float dot = (((positionX - x1) * (x2 - x1)) + ((positionY - y1) * (y2 - y1))) / pow(lineLen, 2);
+	volatile double dot = (((positionX - x1) * (x2 - x1)) + ((positionY - y1) * (y2 - y1))) / pow(lineLen, 2);
 
 	//Find the closest point on the line
-	float closestX = x1 + (dot * (x2 - x1));
-	float closestY = y1 + (dot * (y2 - y1));
+	volatile double closestX = x1 + (dot * (x2 - x1));
+	volatile double closestY = y1 + (dot * (y2 - y1));
+
+	if (DEBUG) {
+		gdispDrawLine(x1, y1, x2, y2, Blue);
+		gdispFillCircle(closestX, closestY, 2, Green);
+	}
 
 	//Get distance from the point to the two ends of the line
-	float d1 = DIST(closestX, closestY, x1, y1);
-	float d2 = DIST(closestX, closestY, x2, y2);
+	volatile double d1 = DIST(closestX, closestY, x1, y1);
+	volatile double d2 = DIST(closestX, closestY, x2, y2);
 
 	//Since floats are so minutely accurate, add a little buffer zone that will give collision
-	float buffer = 0.1; // higher # = less accurate
+	volatile double buffer = 0.1; // higher # = less accurate
 
 	//If the two distances are equal to the line's length, the point is on the line!
 	//note we use the buffer here to give a range, rather than one #
-	uint8_t pointOnLine = d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer;
+	volatile uint8_t pointOnLine = d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer;
 
 	//Is the closest point is within the ball?
-	uint8_t pointInBall = DIST(closestX, closestY, positionX, positionY) <= BALL_RADIUS;
+	volatile uint8_t pointInBall = DIST(closestX, closestY, positionX, positionY) <= BALL_RADIUS;
 
-	return pointOnLine && pointInBall;
+	if (pointOnLine && pointInBall) {
+		collisionPoint[0] = closestX;
+		collisionPoint[1] = closestY;
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 void drawBall() {
@@ -253,15 +289,14 @@ void registerCollisionPolygon(point *points, uint8_t pointCount) {
 	}
 }
 
-/*int main() {
+int main() {
 	// Initialize Board functions and graphics
 	ESPL_SystemInit();
 
 	// Initializes Draw Queue with 100 lines buffer
 	//JoystickQueue = xQueueCreate(100, 2 * sizeof(char));
 
-	xTaskCreate(drawTask, "drawTask", 5000, NULL, 5, NULL);
-
+	xTaskCreate(testPhysicsDrawTask, "drawTask", 5000, NULL, 5, NULL);
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
-}*/
+}
