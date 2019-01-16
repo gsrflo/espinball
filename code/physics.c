@@ -124,18 +124,6 @@ void calculatePhysics(int deltaTime) {
 		volatile double dot = DOT_PRODUCT(velocity, collisionNormal);
 		velocity[0] = 1 * velocity[0] - 2 * dot * collisionNormal[0];
 		velocity[1] = 1 * velocity[1] - 2 * dot * collisionNormal[1];
-		/*if (velocity[0] > 150) {
-			velocity[0] = 150;
-		}
-		if (velocity[0]< -250) {
-					velocity[0] = -250;
-				}
-		if (velocity[1] > 250) {
-					velocity[1] = 250;
-				}
-				if (velocity[1]< -250) {
-							velocity[1] = -250;
-						}*/
 
 	} else {
 		newPositionX += totalDeltaX;
@@ -289,7 +277,12 @@ void registerCollisionPolygon(point *points, uint8_t pointCount) {
 	}
 }
 
-int main() {
+void resetCollisionObjects() {
+	collisionCirclesCount = 0;
+	collisionPolygonsCount = 0;
+}
+
+/*int main() {
 	// Initialize Board functions and graphics
 	ESPL_SystemInit();
 
@@ -299,4 +292,4 @@ int main() {
 	xTaskCreate(testPhysicsDrawTask, "drawTask", 5000, NULL, 5, NULL);
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
-}
+}*/

@@ -92,7 +92,7 @@ void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
 }
 void drawPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
 	gdispFillCircle(x, y, radius, color);
-	registerCollisionCircle(x, y, radius);
+	//registerCollisionCircle(x, y, radius);
 }
 void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
@@ -616,6 +616,8 @@ void drawTask() {
 	// Start endless loop
 	while (TRUE) {
 		while (xQueueReceive(JoystickQueue, &joystickPosition, 0) == pdTRUE);
+
+		resetCollisionObjects();
 
 		//FPS
 		xLastWakeTime = xWakeTime;
