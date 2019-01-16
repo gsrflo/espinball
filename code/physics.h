@@ -13,9 +13,9 @@
 
 #include <math.h>
 
-#define BALL_RADIUS 10
-#define GRAVITY 250
-#define DEBUG TRUE
+#define BALL_RADIUS 6
+#define GRAVITY 280
+#define DEBUG FALSE
 
 #define COLLISION_OBJECT_RECT 0
 #define COLLISION_OBJECT_CIRCLE 1
@@ -35,6 +35,9 @@ typedef struct collision_poly {
 	uint8_t pointCount;
 	uint16_t points[10];
 } collision_poly;
+
+extern double velocity[];
+extern double position[];
 
 void testPhysicsDrawTask();
 void calculatePhysics(int deltaTime);

@@ -92,15 +92,31 @@ void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
 }
 void drawPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
 	gdispFillCircle(x, y, radius, color);
-	//registerCollisionCircle(x, y, radius);
+	registerCollisionCircle(x, y, radius);
 }
 void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
-	//registerCollisionLine(x1, y1, x2, y2);
+	registerCollisionLine(x1, y1, x2, y2);
+
+	registerCollisionCircle(x1, y1, 3);
+	registerCollisionCircle(x2, y2, 3);
+
+	if (DEBUG) {
+		gdispFillCircle(x1, y1, 3, Red);
+		gdispFillCircle(x2, y2, 3, Red);
+	}
 }
 void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
-	//registerCollisionLine(x1, y1, x2, y2);
+	registerCollisionLine(x1, y1, x2, y2);
+
+	registerCollisionCircle(x1, y1, 3);
+	registerCollisionCircle(x2, y2, 3);
+
+	if (DEBUG) {
+		gdispFillCircle(x1, y1, 3, Red);
+		gdispFillCircle(x2, y2, 3, Red);
+	}
 }
 
 void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
@@ -661,6 +677,8 @@ void drawTask() {
 			drawTableEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 					coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 
+			calculatePhysics(xWakeTime - xLastWakeTime);
+			drawBall();
 
 
 			//***ANIMATIONS***
@@ -713,11 +731,32 @@ void drawTask() {
 
 			//***INPUTS***
 			if (intButtonB) {
+				if (coordRightLeverY1 != coordRightLeverY1Triggered) {
+					for (int i = 0; i < 20; i++) {
+						double range = coordRightLeverY1Triggered - coordRightLeverY1Idle;
+						double y1 = coordRightLeverY1Idle + range / i;
+						if (checkLineCollision(position[0], position[1], coordRightLeverX1, y1, coordRightLeverX2, coordRightLeverY2)) {
+							position[1] = coordRightLeverY1Triggered;
+							velocity[1] = -400;
+						}
+					}
+				}
 				coordRightLeverY1 = coordRightLeverY1Triggered;
 			} else {
 				coordRightLeverY1 = coordRightLeverY1Idle;
 			}
+
 			if (intButtonD) {
+				if (coordLeftLeverY2 != coordLeftLeverY2Triggered) {
+					for (int i = 0; i < 20; i++) {
+						double range = coordLeftLeverY2Triggered - coordLeftLeverY2Idle;
+						double y1 = coordLeftLeverY2Idle + range / i;
+						if (checkLineCollision(position[0], position[1], coordLeftLeverX1, y1, coordLeftLeverX2, coordLeftLeverY2)) {
+							position[1] = coordRightLeverY1Triggered;
+							velocity[1] = -400;
+						}
+					}
+				}
 				coordLeftLeverY2 = coordLeftLeverY2Triggered;
 			} else {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;
