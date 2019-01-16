@@ -23,16 +23,17 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
-double velocity[] = {80, 0};
-double position[] = {80, 10};
+double velocity[] = {120, 0};
+double position[] = {200, 10};
+//double position[] = {310, 150};
 
 double collisionPoint[] = {0, 0};
 double collisionNormal[] = {0, 0};
 
-collision_circle collisionCircles[20] = {};
+collision_circle collisionCircles[80] = {};
 uint8_t collisionCirclesCount = 0;
 
-collision_poly collisionPolygons[20] = {};
+collision_poly collisionPolygons[40] = {};
 uint8_t collisionPolygonsCount = 0;
 
 //uint16_t collisionObjects[200];
@@ -106,8 +107,8 @@ void calculatePhysics(int deltaTime) {
 			numberSteps = totalDeltaY;
 		}
 
-		int16_t dx = 0;
-		int16_t dy = 0;
+		volatile int16_t dx = 0;
+		volatile int16_t dy = 0;
 		for (uint16_t steps = 0; steps <= numberSteps; steps++) {
 			int16_t newDx = totalDeltaX / numberSteps * steps;
 			int16_t newDy = totalDeltaY / numberSteps * steps;
@@ -122,8 +123,8 @@ void calculatePhysics(int deltaTime) {
 		}
 
 		volatile double dot = DOT_PRODUCT(velocity, collisionNormal);
-		velocity[0] = 1 * velocity[0] - 2 * dot * collisionNormal[0];
-		velocity[1] = 1 * velocity[1] - 2 * dot * collisionNormal[1];
+		velocity[0] = 1 * velocity[0] - 1.8 * dot * collisionNormal[0];
+		velocity[1] = 1 * velocity[1] - 1.8 * dot * collisionNormal[1];
 
 	} else {
 		newPositionX += totalDeltaX;
@@ -151,7 +152,16 @@ uint8_t checkCollision(uint16_t positionX, uint16_t positionY) {
 }
 
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle) {
-	return abs(circle->x - positionX) <= circle->radius && abs(circle->y - positionY) <= circle->radius;
+	if (abs(circle->x - positionX) <= circle->radius && abs(circle->y - positionY) <= circle->radius) {
+		collisionNormal[0] = -velocity[0];
+		collisionNormal[1] = -velocity[1];
+		double len = LEN(collisionNormal);
+		collisionNormal[0] = collisionNormal[0] / len;
+		collisionNormal[1] = collisionNormal[1] / len;
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 uint8_t checkPolygonCollision(volatile uint16_t positionX, volatile uint16_t positionY, collision_poly *poly) {
@@ -197,8 +207,8 @@ uint8_t checkLineCollision(volatile uint16_t positionX, volatile uint16_t positi
 	volatile double closestY = y1 + (dot * (y2 - y1));
 
 	if (DEBUG) {
-		gdispDrawLine(x1, y1, x2, y2, Blue);
-		gdispFillCircle(closestX, closestY, 2, Green);
+		//gdispDrawLine(x1, y1, x2, y2, Blue);
+		//gdispFillCircle(closestX, closestY, 2, Green);
 	}
 
 	//Get distance from the point to the two ends of the line
