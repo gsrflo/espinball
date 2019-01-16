@@ -53,12 +53,8 @@ void registerCollisionCircle(uint16_t x, uint16_t y, uint8_t radius);
 void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void registerCollisionPolygon(point *points, uint8_t pointCount);
+void resetCollisionObjects();
 
 uint8_t checkBallCollision(uint16_t newPositionX, uint16_t newPositionY);
-//void drawTask();
-//void calculatePhysics(int deltaTime);
-//void drawBall();
-//void drawBitmap(uint8_t bitmap[], uint16_t width, uint16_t height)
-//uint8_t checkColissionWithBackground(uint16_t newPositionX, uint16_t newPositionY);
 
 #endif
