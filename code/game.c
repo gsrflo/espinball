@@ -118,7 +118,6 @@ void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, co
 		gdispFillCircle(x2, y2, 3, Red);
 	}
 }
-
 void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
@@ -126,42 +125,26 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	/**** necessary for each table *****/
 	/***********************************/
 	// lever
-	/*gdispDrawThickLine(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Gray, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Gray, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Gray, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Gray, thickLever);
 
 	// obstacles horizontal
-	/*gdispDrawThickLine(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black, thickLever);
 
 	// obstacles vertical
-	/*gdispDrawThickLine(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever);
 
 	// boundaries
-	/*gdispDrawThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5, FALSE);
-	gdispDrawThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5, FALSE);*/
 	drawPinballThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5);
 	drawPinballThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5);
 
 	// level frame
-	/*gdispDrawThickLine(0, 0, displaySizeX, 0, Black, 3, FALSE);
-	gdispDrawThickLine(0, 0, 0, displaySizeY, Black, 3, FALSE);*/
 	drawPinballThickLine(0, 0, displaySizeX, 0, Black, 3);
 	drawPinballThickLine(0, 0, 0, displaySizeY, Black, 3);
 
 	// start area
-	/*gdispDrawThickLine(coordStartAreaX, 0, coordStartAreaX, 60,Black, 5, FALSE); //upper lines
-	gdispDrawThickLine(coordStartAreaX, 58,coordStartAreaX + startAreaSize / 3, 63, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX + startAreaSize / 3, 63,coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX + 2 * startAreaSize / 3, 73,coordStartAreaX + 3 * startAreaSize / 3, 90, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX, 90, coordStartAreaX,displaySizeY, Black, 5, FALSE); //lower lines
-	gdispDrawThickLine(displaySizeX, 0, displaySizeX, displaySizeY,Black, 5, FALSE);*/
 	drawPinballThickLine(coordStartAreaX, 0, coordStartAreaX, 60,Black, 5); //upper lines
 	drawPinballThickLine(coordStartAreaX, 58,coordStartAreaX + startAreaSize / 3, 63, Black, 5); //upper lines curve
 	drawPinballThickLine(coordStartAreaX + startAreaSize / 3, 63,coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5); //upper lines curve
@@ -170,23 +153,14 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	drawPinballThickLine(displaySizeX, 0, displaySizeX, displaySizeY,Black, 5);
 
 	//start lever
-	/*gdispDrawThickLine(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3, TRUE);
-	gdispDrawThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1, FALSE);*/
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
+
 // single player tables
-void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
-		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
+void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
-	/*gdispFillCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
-	gdispFillCircle(coordHoleRightX, coordHoleRightY, 10, Red);
-	gdispDrawThickLine(coordHoleLeftX - 20, 50, coordHoleLeftX, 70, Black, 5, TRUE); 		// left bowl
-	gdispDrawThickLine(coordHoleLeftX, 70, coordHoleLeftX + 20, 50, Black, 5, TRUE);		// left bowl
-	gdispDrawThickLine(coordHoleRightX - 20, 50, coordHoleRightX,70, Black, 5, TRUE);		// right bowl
-	gdispDrawThickLine(coordHoleRightX, 70, coordHoleRightX + 20,50, Black, 5, TRUE);		// right bowl
-	*/
 	fillPinballCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
 	fillPinballCircle(coordHoleRightX, coordHoleRightY, 10, Red);
 	drawPinballThickLineRound(coordHoleLeftX - 20, 50, coordHoleLeftX, 70, Black, 5); 		// left bowl
@@ -195,17 +169,10 @@ void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	drawPinballThickLineRound(coordHoleRightX, 70, coordHoleRightX + 20,50, Black, 5);
 
 	// bumper
-	/*gdispDrawThickLine(coordHoleLeftX + 2, 70,coordHoleLeftX + 20 + 2, 50, Green, 2, FALSE);// left bumper bowl
-	gdispDrawThickLine(coordHoleRightX - 20 - 2, 50, coordHoleRightX - 2, 70, Green, 2, FALSE);// right bumper bowl
-	*/
 	drawPinballThickLine(coordHoleLeftX + 2, 70,coordHoleLeftX + 20 + 2, 50, Green, 2); // left bumper bowl
 	drawPinballThickLine(coordHoleRightX - 20 - 2, 50, coordHoleRightX - 2, 70, Green, 2); // right bumper bowl
 
 	// upper bumper
-	/*gdispDrawThickLine(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5, TRUE); 		// left upper bumper
-	gdispDrawThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2, FALSE);
-	gdispDrawThickLine(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5, TRUE);		// right upper bumper
-	gdispDrawThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, FALSE);*/
 	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
 	drawPinballThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2);
 	drawPinballThickLineRound(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5);		// right upper bumper
@@ -230,19 +197,27 @@ void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	gdispFillCircle(coordGameAreaX2 / 2 + 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 
+}
 
+void drawAdditionalLever(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
+		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
+
+	//additional pair of lever
+	// lever
+	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Gray, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Gray, thickLever);
+
+	// obstacles horizontal
+	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2 - 90, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 90, Black, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
 
 }
+
+
 void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
+
 	// red holes to change table
-	/*gdispFillCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
-	gdispFillCircle(coordHoleRightX, coordHoleRightY, 10, Red);
-	gdispDrawThickLine(coordHoleLeftX - 30, 32, coordHoleLeftX + 30, 35, Black, 5, TRUE); 		// left bowl
-	gdispDrawThickLine(coordHoleLeftX + 30, 35, coordHoleLeftX + 30, 60, Black, 5, TRUE);		// left bowl
-	gdispDrawThickLine(coordHoleRightX - 30, 35, coordHoleRightX + 30, 32, Black, 5, TRUE);		// right bowl
-	gdispDrawThickLine(coordHoleRightX - 30 , 35, coordHoleRightX - 30, 60, Black, 5, TRUE);		// right bowl
-	*/
 	fillPinballCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
 	fillPinballCircle(coordHoleRightX, coordHoleRightY, 10, Red);
 	drawPinballThickLineRound(coordHoleLeftX - 30, 32, coordHoleLeftX + 30, 35, Black, 5); 		// left bowl
@@ -251,18 +226,10 @@ void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, 
 	drawPinballThickLineRound(coordHoleRightX - 30 , 35, coordHoleRightX - 30, 60, Black, 5);		// right bowl
 
 	// bumper
-	/*gdispDrawThickLine(coordHoleLeftX + 30 + 2, 35 + 2, coordHoleLeftX + 30 + 2, 60 - 2, Green, 2, FALSE);// left bumper bowl
-	gdispDrawThickLine(coordHoleRightX - 30 - 3, 35 + 2, coordHoleRightX - 30 - 3, 60 - 2, Green, 2, FALSE);// right bumper bowl
-	*/
 	drawPinballThickLine(coordHoleLeftX + 30 + 2, 35 + 2, coordHoleLeftX + 30 + 2, 60 - 2, Green, 2);// left bumper bowl
 	drawPinballThickLine(coordHoleRightX - 30 - 3, 35 + 2, coordHoleRightX - 30 - 3, 60 - 2, Green, 2);// right bumper bowl
 
 	// lower bumper
-	/*gdispDrawThickLine(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5, TRUE); 		// left upper bumper2s
-	gdispDrawThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2, FALSE);
-	gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5, TRUE);		// right upper bumper
-	gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, FALSE);
-	*/
 	drawPinballThickLineRound(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5); 		// left upper bumper
 	drawPinballThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2);
 	drawPinballThickLineRound(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5);		// right upper bumper
@@ -295,12 +262,6 @@ void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
-	/*gdispFillCircle(coordGameAreaX2/2 - 20, coordGameAreaY1 + 20, 10, Red);
-	gdispFillCircle(coordGameAreaX2/2 + 20, coordGameAreaY1 + 20, 10, Red);
-	gdispDrawThickLine(coordGameAreaX2/2, coordGameAreaY1, coordGameAreaX2/2, coordGameAreaY1 + 40, Black, 5, TRUE);
-	gdispDrawThickLine(coordGameAreaX2/2 - 30, coordGameAreaY1, coordGameAreaX2/2 - 50, coordGameAreaY1 + 40, Black, 5, TRUE);
-	gdispDrawThickLine(coordGameAreaX2/2 + 30, coordGameAreaY1, coordGameAreaX2/2 + 50, coordGameAreaY1 + 40, Black, 5, TRUE);
-	*/
 	fillPinballCircle(coordGameAreaX2/2 - 20, coordGameAreaY1 + 20, 10, Red);
 	fillPinballCircle(coordGameAreaX2/2 + 20, coordGameAreaY1 + 20, 10, Red);
 	drawPinballThickLineRound(coordGameAreaX2/2, coordGameAreaY1, coordGameAreaX2/2, coordGameAreaY1 + 40, Black, 5);
@@ -308,21 +269,12 @@ void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	drawPinballThickLineRound(coordGameAreaX2/2 + 30, coordGameAreaY1, coordGameAreaX2/2 + 50, coordGameAreaY1 + 40, Black, 5);
 
 	// lower bumper
-	/*gdispDrawThickLine(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5, TRUE); 		// left upper bumper2s
-	gdispDrawThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2, FALSE);
-	gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5, TRUE);		// right upper bumper
-	gdispDrawThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, FALSE);
-	*/
 	drawPinballThickLineRound(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5); 		// left upper bumper2s
 	drawPinballThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2);
 	drawPinballThickLineRound(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5);		// right upper bumper
 	drawPinballThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2);
 
 	// circle bumper
-	/*gdispFillCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Silver);
-	gdispDrawCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Black);
-	gdispFillCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Silver);
-	gdispDrawCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Black);*/
 	fillPinballCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Silver);
 	gdispDrawCircle(coordGameAreaX2 / 2 + 50, coordGameAreaY2 / 2, 15, Black);
 	fillPinballCircle(coordGameAreaX2 / 2 - 50, coordGameAreaY2 / 2, 15, Silver);
@@ -344,70 +296,53 @@ void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 }
-// multi player tables
+// multi player table
 void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
-	gdispDrawThickLine(coordGameAreaX2 / 2 - 80, 50, coordGameAreaX2 / 2, 10, Black, 5, TRUE);		// left bowl
-	gdispDrawThickLine(coordGameAreaX2 / 2, 10, coordGameAreaX2 / 2 + 80, 50, Black, 5, TRUE);		// right bowl
+	drawPinballThickLineRound(coordGameAreaX2 / 2 - 80, 50, coordGameAreaX2 / 2, 10, Black, 5);		// left bowl
+	drawPinballThickLineRound(coordGameAreaX2 / 2, 10, coordGameAreaX2 / 2 + 80, 50, Black, 5);		// right bowl
 	// bumper
-	gdispDrawThickLine(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2, FALSE);// left bumper bowl
-	gdispDrawThickLine(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2, FALSE);// right bumper bowl
+	drawPinballThickLine(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2);// left bumper bowl
+	drawPinballThickLine(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2);// right bumper bowl
 	// upper bumper
-	gdispDrawThickLine(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5, TRUE); 		// left upper bumper
-	gdispDrawThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Green, 2, FALSE);
-	gdispDrawThickLine(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5, TRUE);		// right upper bumper
-	gdispDrawThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, FALSE);
+	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
+	drawPinballThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Green, 2);
+	drawPinballThickLineRound(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5);		// right upper bumper
+	drawPinballThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2);
 
 	// round bumper
-	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, 15, Green);
-	gdispFillCircle(coordGameAreaX2 / 2 - 30 , coordGameAreaY2 / 2 + 30, 15, Blue);
-	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, 15, Green);
-	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, 15, Blue);
+	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, 15, Green);
+	fillPinballCircle(coordGameAreaX2 / 2 - 30 , coordGameAreaY2 / 2 + 30, 15, Blue);
+	fillPinballCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, 15, Green);
+	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, 15, Blue);
 
 }
-
 void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
 
 	// lever
-	/*gdispDrawThickLine(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Gray, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Gray, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, Green, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, Blue, thickLever);
 
 	// obstacles horizontal
-	/*gdispDrawThickLine(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1, coordLeftLeverY1, Black, thickLever);
 
 	// obstacles vertical
-	/*gdispDrawThickLine(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever, TRUE);
-	gdispDrawThickLine(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever, TRUE);*/
 	drawPinballThickLineRound(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever);
 
 	// boundaries
-	/*gdispDrawThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5, FALSE);
-	gdispDrawThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5, FALSE);*/
 	drawPinballThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5);
 	drawPinballThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5);
 
 	// level frame
-	/*gdispDrawThickLine(0, 0, displaySizeX, 0, Black, 3, FALSE);
-	gdispDrawThickLine(0, 0, 0, displaySizeY, Black, 3, FALSE);*/
 	drawPinballThickLine(0, 0, displaySizeX, 0, Black, 3);
 	drawPinballThickLine(0, 0, 0, displaySizeY, Black, 3);
 
 	// start area
-	/*gdispDrawThickLine(coordStartAreaX, 0, coordStartAreaX, 60,Black, 5, FALSE); //upper lines
-	gdispDrawThickLine(coordStartAreaX, 58,coordStartAreaX + startAreaSize / 3, 63, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX + startAreaSize / 3, 63,coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX + 2 * startAreaSize / 3, 73,coordStartAreaX + 3 * startAreaSize / 3, 90, Black, 5,FALSE); //upper lines curve
-	gdispDrawThickLine(coordStartAreaX, 90, coordStartAreaX,displaySizeY, Black, 5, FALSE); //lower lines
-	gdispDrawThickLine(displaySizeX, 0, displaySizeX, displaySizeY,Black, 5, FALSE);*/
 	drawPinballThickLine(coordStartAreaX, 0, coordStartAreaX, 60,Black, 5); //upper lines
 	drawPinballThickLine(coordStartAreaX, 58,coordStartAreaX + startAreaSize / 3, 63, Black, 5); //upper lines curve
 	drawPinballThickLine(coordStartAreaX + startAreaSize / 3, 63,coordStartAreaX + 2 * startAreaSize / 3, 73, Black, 5); //upper lines curve
@@ -416,8 +351,6 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 	drawPinballThickLine(displaySizeX, 0, displaySizeX, displaySizeY,Black, 5);
 
 	//start lever
-	/*gdispDrawThickLine(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3, TRUE);
-	gdispDrawThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1, FALSE);*/
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
@@ -644,8 +577,6 @@ void drawTask() {
 		uint16_t delay = xWakeTime - xLastWakeTime;
 		intFPS = 1000 / delay;
 
-
-
 		// Clear background
 		gdispClear(White);
 
@@ -666,6 +597,7 @@ void drawTask() {
 			/****** LEVEL *****/
 			if (intActTable == intTableStart) {
 				drawTableStart(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+				drawAdditionalLever(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 
 			} else if (intActTable == intTableLeft) {
 				drawTableLeft(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
@@ -729,6 +661,8 @@ void drawTask() {
 
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
 
+
+
 			//***INPUTS***
 			if (intButtonB) {
 				if (coordRightLeverY1 != coordRightLeverY1Triggered) {
@@ -774,6 +708,8 @@ void drawTask() {
 			drawTableMultiPlayerEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 								coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
+			calculatePhysics(xWakeTime - xLastWakeTime);
+			drawBall();
 
 			//***INPUTS***
 			if (intButtonB) {
@@ -824,6 +760,8 @@ void drawTask() {
 		default:
 			break;
 		}
+
+
 
 		// Wait for display to stop writing
 		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
