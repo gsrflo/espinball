@@ -86,20 +86,31 @@ int8_t intLifes = 3;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // FUNCTIONS
-void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
+void fillPinballCircleWithId(uint16_t x, uint16_t y, uint8_t radius, color_t color, uint16_t id){
 	gdispFillCircle(x, y, radius, color);
-	registerCollisionCircle(x, y, radius);
+	registerCollisionCircle(x, y, radius, id);
 }
-void drawPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color ){
-	gdispFillCircle(x, y, radius, color);
-	registerCollisionCircle(x, y, radius);
+void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color) {
+	fillPinballCircleWithId(x, y, radius, color, OBJECT_ENV);
 }
 void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
-	registerCollisionLine(x1, y1, x2, y2);
+	registerCollisionLine(x1, y1, x2, y2, OBJECT_ENV);
 
-	registerCollisionCircle(x1, y1, 3);
-	registerCollisionCircle(x2, y2, 3);
+	registerCollisionCircle(x1, y1, 3, OBJECT_ENV);
+	registerCollisionCircle(x2, y2, 3, OBJECT_ENV);
+
+	if (DEBUG) {
+		gdispFillCircle(x1, y1, 3, Red);
+		gdispFillCircle(x2, y2, 3, Red);
+	}
+}
+void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width, uint16_t id){
+	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
+	registerCollisionLine(x1, y1, x2, y2, id);
+
+	registerCollisionCircle(x1, y1, 3, id);
+	registerCollisionCircle(x2, y2, 3, id);
 
 	if (DEBUG) {
 		gdispFillCircle(x1, y1, 3, Red);
@@ -107,16 +118,7 @@ void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 	}
 }
 void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
-	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
-	registerCollisionLine(x1, y1, x2, y2);
-
-	registerCollisionCircle(x1, y1, 3);
-	registerCollisionCircle(x2, y2, 3);
-
-	if (DEBUG) {
-		gdispFillCircle(x1, y1, 3, Red);
-		gdispFillCircle(x2, y2, 3, Red);
-	}
+	drawPinballThickLineWithId(x1, y1, x2, y2, color, width, OBJECT_ENV);
 }
 void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
@@ -501,6 +503,18 @@ void TaskController() {
 		vTaskDelay(100);
 	}
 }
+
+void checkStart(int coordStartAreaX) {
+	if (position[0] > coordStartAreaX + 2) {
+		if (position[1] + BALL_RADIUS > 200 + intGainStartLever) {
+			position[1] = 200 + intGainStartLever - BALL_RADIUS;
+			position[0] = coordStartAreaX + 15;
+			velocity[1] = -400;
+		}
+	}
+}
+
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTask() {
 
@@ -609,7 +623,9 @@ void drawTask() {
 			drawTableEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 					coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 
+			checkStart(coordStartAreaX);
 			calculatePhysics(xWakeTime - xLastWakeTime);
+
 			drawBall();
 
 
@@ -708,7 +724,10 @@ void drawTask() {
 			drawTableMultiPlayerEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 								coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
+
+			checkStart(coordStartAreaX);
 			calculatePhysics(xWakeTime - xLastWakeTime);
+
 			drawBall();
 
 			//***INPUTS***

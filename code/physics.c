@@ -24,8 +24,8 @@ static const uint16_t
 		centerY = 120;
 
 double velocity[] = {120, 0};
-double position[] = {200, 10};
-//double position[] = {310, 150};
+//double position[] = {200, 10};
+double position[] = {310, 150};
 
 double collisionPoint[] = {0, 0};
 double collisionNormal[] = {0, 0};
@@ -36,55 +36,7 @@ uint8_t collisionCirclesCount = 0;
 collision_poly collisionPolygons[40] = {};
 uint8_t collisionPolygonsCount = 0;
 
-//uint16_t collisionObjects[200];
-//uint8_t collisionObjectsIndex = 0;
 double collisionSpeedMultiplier = 0.8;
-
-void testPhysicsDrawTask() {
-	TickType_t xLastWakeTime;
-	TickType_t xWakeTime;
-	xWakeTime = xTaskGetTickCount();
-	xLastWakeTime = xWakeTime;
-
-	font_t font = gdispOpenFont("DejaVuSans24*");
-	char str[100];
-
-	gdispClear(White);
-
-	//drawBitmap(background, 320, 240);
-
-	//registerCollisionRectangle(120, 120, 320, 4);
-	//registerCollisionRectangle(0, 250, 320, 4);
-	registerCollisionLine(0, 220, 320, 180);
-	registerCollisionLine(150, 100, 300, 180);
-	registerCollisionLine(80, 240, 0, 0);
-	//registerCollisionLine(80, 240, 0, 0);
-
-	while(TRUE) {
-		calculatePhysics(xWakeTime - xLastWakeTime);
-		drawBall();
-		//gdispFillArea(120, 120, 320, 4, Green);
-		//gdispFillArea(180, 120, 320, 4, Blue);
-		//gdispDrawLine(0, 200, 320, 180, Blue);
-		//gdispDrawLine(0, 200, 320, 180, Blue);
-
-		//Wait for display to stop writing
-		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
-		ESPL_DrawLayer();
-
-		xLastWakeTime = xWakeTime;
-
-		//50Hz
-		vTaskDelayUntil(&xWakeTime, 1000/50);
-		gdispClear(White);
-
-		//Calculate and show FPS
-		uint16_t delay = xWakeTime - xLastWakeTime;
-		uint8_t fps = 1000 / delay;
-		sprintf( str, "FPS: %2d", fps);
-		gdispDrawString(10, 10, str, font, Black);
-	}
-}
 
 void calculatePhysics(int deltaTime) {
 	double deltaSeconds = ((double) deltaTime) / 1000.0;
@@ -158,6 +110,11 @@ uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_c
 		double len = LEN(collisionNormal);
 		collisionNormal[0] = collisionNormal[0] / len;
 		collisionNormal[1] = collisionNormal[1] / len;
+
+		if (DEBUG) {
+			gdispDrawLine(positionX, positionY, collisionPoint[0] + collisionNormal[0] * 50, collisionPoint[1] + collisionNormal[1] * 50, Red);
+		}
+
 		return TRUE;
 	}
 
@@ -238,25 +195,17 @@ void drawBall() {
 	gdispFillCircle(position[0], position[1], BALL_RADIUS, Red);
 }
 
-void drawBitmap(uint8_t bitmap[], uint16_t width, uint16_t height) {
-	for (uint16_t x = 0; x < width - 1; x++) {
-		for (uint16_t y = 0; y < height - 1; y++) {
-			if (bitmap[x + y * width] < 255) {
-				gdispDrawPixel(x, y, Blue);
-			}
-		}
-	}
-}
-
-void registerCollisionCircle(uint16_t x, uint16_t y, uint8_t radius) {
+void registerCollisionCircle(uint16_t x, uint16_t y, uint8_t radius, uint8_t id) {
 	collision_circle *circle = &collisionCircles[collisionCirclesCount++];
+	circle->id = id;
 	circle->x = x;
 	circle->y = y;
 	circle->radius = radius;
 }
 
-void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
+	poly->id = id;
 	poly->pointCount = 2;
 	poly->points[0] = x1;
 	poly->points[1] = y1;
@@ -264,8 +213,9 @@ void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	poly->points[3] = y2;
 }
 
-void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
+	poly->id = id;
 	poly->pointCount = 4;
 	poly->points[0] = x;
 	poly->points[1] = y;
@@ -277,8 +227,9 @@ void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t
 	poly->points[7] = y + height;
 }
 
-void registerCollisionPolygon(point *points, uint8_t pointCount) {
+void registerCollisionPolygon(point *points, uint8_t pointCount, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
+	poly->id = id;
 	poly->pointCount = pointCount;
 
 	for (int i = 0; i < pointCount; i++) {
@@ -291,15 +242,3 @@ void resetCollisionObjects() {
 	collisionCirclesCount = 0;
 	collisionPolygonsCount = 0;
 }
-
-/*int main() {
-	// Initialize Board functions and graphics
-	ESPL_SystemInit();
-
-	// Initializes Draw Queue with 100 lines buffer
-	//JoystickQueue = xQueueCreate(100, 2 * sizeof(char));
-
-	xTaskCreate(testPhysicsDrawTask, "drawTask", 5000, NULL, 5, NULL);
-	// Start FreeRTOS Scheduler
-	vTaskStartScheduler();
-}*/
