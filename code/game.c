@@ -55,10 +55,11 @@ int8_t intSelectedMode = 1;
 int8_t intTableStart = 2;
 int8_t intTableLeft = 1;
 int8_t intTableRight = 3;
-int8_t intActTable = 2;		//select [1:3] for table on display
+int8_t intActTable = 3;		//select [1:3] for table on display
 int8_t intScreenBeforePause = 0;
 int16_t intGainStartLever = 0;
 int8_t intAnimation = 0; //select 1 for animation1 or 2 for animation 2
+int8_t 	intStartAreaClosed = 0;
 
 // global button variables
 int8_t  intButtonA = 0,
@@ -158,8 +159,26 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
-
+void checkCloseStartArea(int coordStartAreaX){
+	if (position[0] < coordStartAreaX || intStartAreaClosed == 1) {
+		drawPinballThickLine(coordStartAreaX, 60, coordStartAreaX, 90, Black, 5); //upper lines
+		intStartAreaClosed = 1;
+	}
+}
 // single player tables
+void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
+		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
+
+	//additional pair of lever
+	// lever
+	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Gray, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Gray, thickLever);
+
+	// obstacles horizontal
+	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2 - 90, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 90, Black, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
+
+}
 void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
@@ -200,22 +219,6 @@ void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 
 }
-
-void drawAdditionalLever(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
-		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
-
-	//additional pair of lever
-	// lever
-	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Gray, thickLever);
-	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Gray, thickLever);
-
-	// obstacles horizontal
-	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2 - 90, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 90, Black, thickLever);
-	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
-
-}
-
-
 void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -237,6 +240,10 @@ void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, 
 	drawPinballThickLineRound(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5);		// right upper bumper
 	drawPinballThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2);
 
+	// circle bumper
+	fillPinballCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, 25, Orange);
+	gdispDrawCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, 25, Black);
+
 	// coins
 	/*gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
@@ -253,11 +260,11 @@ void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, 
 	gdispFillCircle(coordGameAreaX2 / 2 + 15, coordGameAreaY1 + 25, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY1 + 25, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);
-	*/
+
 	fillPinballCircle(coordGameAreaX2 / 2 - 15, coordGameAreaY1 + 25, coinRadius, Yellow);
 	fillPinballCircle(coordGameAreaX2 / 2 + 15, coordGameAreaY1 + 25, coinRadius, Yellow);
 	fillPinballCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY1 + 25, coinRadius, Yellow);
-	fillPinballCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);
+	fillPinballCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);*/
 
 }
 void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
@@ -299,6 +306,19 @@ void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 }
 // multi player table
+void drawAdditionalLeverMP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
+		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
+
+	//additional pair of lever
+	// lever
+	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Blue, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Green, thickLever);
+
+	// obstacles horizontal
+	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2 - 90, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 90, Black, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
+
+}
 void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -314,10 +334,12 @@ void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleR
 	drawPinballThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2);
 
 	// round bumper
-	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, 15, Green);
-	fillPinballCircle(coordGameAreaX2 / 2 - 30 , coordGameAreaY2 / 2 + 30, 15, Blue);
-	fillPinballCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, 15, Green);
-	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, 15, Blue);
+	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 50, 10, Green);
+	gdispDrawCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 /  2 - 50, 10, Black);
+
+	fillPinballCircle(coordGameAreaX2 / 2 - 30 , coordGameAreaY2 / 2 - 50, 10, Blue);
+	gdispDrawCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 50, 10, Black);
+
 
 }
 void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
@@ -356,6 +378,8 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
+
+
 void drawMenu(){
 	char str[100]; // buffer for messages to draw to display
 
@@ -503,7 +527,7 @@ void TaskController() {
 		vTaskDelay(100);
 	}
 }
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void checkStart(int coordStartAreaX) {
 	if (position[0] > coordStartAreaX + 2) {
 		if (position[1] + BALL_RADIUS > 200 + intGainStartLever) {
@@ -514,8 +538,6 @@ void checkStart(int coordStartAreaX) {
 	}
 }
 
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTask() {
 
 	char str[100]; // buffer for messages to draw to display
@@ -611,21 +633,21 @@ void drawTask() {
 			/****** LEVEL *****/
 			if (intActTable == intTableStart) {
 				drawTableStart(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
-				drawAdditionalLever(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
+				drawAdditionalLeverSP(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
+				checkCloseStartArea(coordStartAreaX);
 
 			} else if (intActTable == intTableLeft) {
 				drawTableLeft(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
-
+				checkCloseStartArea(coordStartAreaX);
 			} else if (intActTable == intTableRight) {
 				drawTableRight(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+				checkCloseStartArea(coordStartAreaX);
 			}
 			// necessary for each table
 			drawTableEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 					coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
-
 			checkStart(coordStartAreaX);
 			calculatePhysics(xWakeTime - xLastWakeTime);
-
 			drawBall();
 
 
@@ -723,12 +745,13 @@ void drawTask() {
 
 			drawTableMultiPlayerEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
 								coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
+			drawAdditionalLeverMP(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
-
-			checkStart(coordStartAreaX);
+			checkStart(coordStartAreaX);			
 			calculatePhysics(xWakeTime - xLastWakeTime);
-
 			drawBall();
+
+			checkCloseStartArea(coordStartAreaX);
 
 			//***INPUTS***
 			if (intButtonB) {
@@ -984,7 +1007,6 @@ void UserStats() {
 
 
 	while(TRUE){
-
 		// user stats
 		if (intScoreSingle >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
@@ -1003,6 +1025,15 @@ void UserStats() {
 			intPlayerLevel = 1;
 		}
 
+		// life decreasing
+		if((position[0] > 320 || position[0] < 0 || position[1] > 240 || position[1] < 0) && intLifes >= 0){
+			intLifes--;
+			position[0] = 310; 		// start position x
+			position[1] = 150;		// start position y
+			velocity[0] = 0;		// start velocity x
+			velocity[1] = 0;		// start velocity y
+			intStartAreaClosed = 0;
+		}
 
 		// game ends
 		if (intLifes <= 0) {
