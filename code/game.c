@@ -104,24 +104,24 @@ void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
 	registerCollisionLine(x1, y1, x2, y2, OBJECT_ENV);
 
-	registerCollisionCircle(x1, y1, 3, OBJECT_ENV);
-	registerCollisionCircle(x2, y2, 3, OBJECT_ENV);
+	registerCollisionCircle(x1, y1, 2, OBJECT_ENV);
+	registerCollisionCircle(x2, y2, 2, OBJECT_ENV);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 3, Red);
-		gdispFillCircle(x2, y2, 3, Red);
+		gdispFillCircle(x1, y1, 2, Red);
+		gdispFillCircle(x2, y2, 2, Red);
 	}
 }
 void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width, uint16_t id){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
 	registerCollisionLine(x1, y1, x2, y2, id);
 
-	registerCollisionCircle(x1, y1, 3, id);
-	registerCollisionCircle(x2, y2, 3, id);
+	registerCollisionCircle(x1, y1, 2, id);
+	registerCollisionCircle(x2, y2, 2, id);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 3, Red);
-		gdispFillCircle(x2, y2, 3, Red);
+		gdispFillCircle(x1, y1, 2, Red);
+		gdispFillCircle(x2, y2, 2, Red);
 	}
 }
 void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
@@ -211,14 +211,17 @@ void checkCollisionObject(uint8_t id){
 		case 4:				// change table left
 			if(intActTable == intTableOne){
 				intActTable = intTableThree;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			} else if(intActTable == intTableTwo){
 				intActTable = intTableOne;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			} else if (intActTable == intTableThree){
 				intActTable = intTableTwo;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			}
@@ -226,14 +229,17 @@ void checkCollisionObject(uint8_t id){
 		case 5:				// change table right
 			if (intActTable == intTableOne) {
 				intActTable = intTableTwo;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			} else if (intActTable == intTableTwo) {
 				intActTable = intTableThree;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			} else if (intActTable == intTableThree) {
 				intActTable = intTableOne;
+				intStartAreaClosed = 0;
 				position[0] = startposition[0];		//setting ball to start area
 				position[1] = startposition[1];		//setting ball to start area
 			}
@@ -279,14 +285,14 @@ void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	fillPinballCircleWithId(coordHoleRightX, coordHoleRightY, 10, Red, OBJECT_CHANGE_TABLE_RIGHT);
 	gdispDrawCircle(coordHoleRightX, coordHoleRightY, 10, Black);
 
-	drawPinballThickLineRound(coordHoleLeftX - 20, 50, coordHoleLeftX, 70, Black, 5); 		// left bowl
-	drawPinballThickLineRound(coordHoleLeftX, 70, coordHoleLeftX + 20, 50, Black, 5);
-	drawPinballThickLineRound(coordHoleRightX - 20, 50, coordHoleRightX, 70, Black, 5);
-	drawPinballThickLineRound(coordHoleRightX, 70, coordHoleRightX + 20,50, Black, 5);
+	drawPinballThickLineRound(coordHoleLeftX - 20, 38, coordHoleLeftX, 58, Black, 5); 		// left bowl
+	drawPinballThickLineRound(coordHoleLeftX, 58, coordHoleLeftX + 20, 38, Black, 5);
+	drawPinballThickLineRound(coordHoleRightX - 20, 38, coordHoleRightX, 58, Black, 5);
+	drawPinballThickLineRound(coordHoleRightX, 58, coordHoleRightX + 20, 38, Black, 5);
 
 	// bumper
-	drawPinballThickLine(coordHoleLeftX + 2, 70,coordHoleLeftX + 20 + 2, 50, Green, 2); // left bumper bowl
-	drawPinballThickLine(coordHoleRightX - 20 - 2, 50, coordHoleRightX - 2, 70, Green, 2); // right bumper bowl
+	drawPinballThickLine(coordHoleLeftX + 2, 58,coordHoleLeftX + 20 + 2, 38, Green, 2); // left bumper bowl
+	drawPinballThickLine(coordHoleRightX - 20 - 2, 38, coordHoleRightX - 2, 58, Green, 2); // right bumper bowl
 
 	// upper bumper
 	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
@@ -577,13 +583,13 @@ int main() {
 	// Initializes Tasks with their respective priority
 
 	xTaskCreate(TaskController, "TaskController", 1000, NULL, 9, &TaskControllerHandle);
-	xTaskCreate(UserStats, "UserStats", 1000, NULL, 2, &UserStatsHandle);
+	xTaskCreate(UserStats, "UserStats", 1000, NULL, 5, &UserStatsHandle);
 	//xTaskCreate(uartReceive, "uartReceive", 1000, NULL, 9, &uartReceiveHandle);
 
 	// interface tasks
-	xTaskCreate(checkJoystick, "checkJoystick", 1000, NULL, 5, &checkJoystickHandle);
-	xTaskCreate(checkButton, "checkButton", 1000, NULL, 5, &checkButtonHandle);
-	xTaskCreate(UserActions, "UserActions", 1000, NULL, 6, &UserActionsHandle);
+	xTaskCreate(checkJoystick, "checkJoystick", 1000, NULL, 6, &checkJoystickHandle);
+	xTaskCreate(checkButton, "checkButton", 1000, NULL, 6, &checkButtonHandle);
+	xTaskCreate(UserActions, "UserActions", 1000, NULL, 7, &UserActionsHandle);
 	// drawing tasks
 	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
 
@@ -640,6 +646,20 @@ void checkStart(int coordStartAreaX) {
 			position[1] = 200 + intGainStartLever - BALL_RADIUS;
 			position[0] = coordStartAreaX + 15;
 			velocity[1] = -400;
+		}
+	}
+}
+
+void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordYTriggered, int coordY2) {
+	if (coordY != coordYTriggered) {
+		for (int i = 0; i < 20; i++) {
+			double range = coordYTriggered - coordYIdle;
+			double y1 = coordYIdle + range / i;
+			if (checkLineCollision(position[0], position[1], coordX1, y1, coordX2, coordY2)) {
+				position[1] = coordYTriggered - 10;
+				velocity[1] = -400;
+				velocity[0] = 100;
+			}
 		}
 	}
 }
@@ -738,7 +758,7 @@ void drawTask() {
 
 			/****** LEVEL *****/
 			if (intActTable == intTableThree) {
-				drawTableThree(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+				drawTableThree(coordHoleLeftX, coordHoleLeftY - 12, coordHoleRightX, coordHoleRightY - 12, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
 				drawAdditionalLeverSP(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 				checkCloseStartArea(coordStartAreaX);
 
@@ -807,32 +827,28 @@ void drawTask() {
 
 			//***INPUTS***
 			if (intButtonB) {
-				if (coordRightLeverY1 != coordRightLeverY1Triggered) {
-					for (int i = 0; i < 20; i++) {
-						double range = coordRightLeverY1Triggered - coordRightLeverY1Idle;
-						double y1 = coordRightLeverY1Idle + range / i;
-						if (checkLineCollision(position[0], position[1], coordRightLeverX1, y1, coordRightLeverX2, coordRightLeverY2)) {
-							position[1] = coordRightLeverY1Triggered;
-							velocity[1] = -400;
-						}
-					}
+				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
+						coordRightLeverY1Triggered, coordRightLeverY2);
+
+				if (intActTable == 3) {
+					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
+							coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
 				}
+
 				coordRightLeverY1 = coordRightLeverY1Triggered;
 			} else {
 				coordRightLeverY1 = coordRightLeverY1Idle;
 			}
 
 			if (intButtonD) {
-				if (coordLeftLeverY2 != coordLeftLeverY2Triggered) {
-					for (int i = 0; i < 20; i++) {
-						double range = coordLeftLeverY2Triggered - coordLeftLeverY2Idle;
-						double y1 = coordLeftLeverY2Idle + range / i;
-						if (checkLineCollision(position[0], position[1], coordLeftLeverX1, y1, coordLeftLeverX2, coordLeftLeverY2)) {
-							position[1] = coordRightLeverY1Triggered;
-							velocity[1] = -400;
-						}
-					}
+				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle,
+						coordLeftLeverY2Triggered, coordRightLeverY1);
+
+				if (intActTable == 3) {
+					checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
+							coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
 				}
+
 				coordLeftLeverY2 = coordLeftLeverY2Triggered;
 			} else {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;
@@ -859,11 +875,19 @@ void drawTask() {
 
 			//***INPUTS***
 			if (intButtonB) {
+				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
+						coordRightLeverY1Triggered, coordRightLeverY2);
+				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
+						coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
 				coordRightLeverY1 = coordRightLeverY1Triggered;
 			} else {
 				coordRightLeverY1 = coordRightLeverY1Idle;
 			}
 			if (intButtonD) {
+				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle,
+						coordLeftLeverY2Triggered, coordRightLeverY1);
+				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
+						coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
 				coordLeftLeverY2 = coordLeftLeverY2Triggered;
 			} else {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;

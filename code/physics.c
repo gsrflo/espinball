@@ -87,7 +87,7 @@ void calculatePhysics(int deltaTime) {
 			velocity[0] = 1 * velocity[0] - 1.45 * dot * collisionNormal[0];
 			velocity[1] = 1 * velocity[1] - 1.45 * dot * collisionNormal[1];
 
-			checkColissionObject(objId);
+			checkCollisionObject(objId);
 
 			return;
 		}
@@ -103,13 +103,13 @@ void calculatePhysics(int deltaTime) {
 int checkCollision(uint16_t positionX, uint16_t positionY) {
 	for (int i = 0; i < collisionCirclesCount; i++) {
 		if (checkCircleCollision(positionX, positionY, &collisionCircles[i])) {
-			return collisionCircles[i]->id;
+			return collisionCircles[i].id;
 		}
 	}
 
 	for (int i = 0; i < collisionPolygonsCount; i++) {
 		if (checkPolygonCollision(positionX, positionY, &collisionPolygons[i])) {
-			return collisionPolygons[i]->id;
+			return collisionPolygons[i].id;
 		}
 	}
 

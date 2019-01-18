@@ -19,7 +19,7 @@
 #define OBJECT_NONE -1
 #define OBJECT_ENV 0
 #define OBJECT_NORMAL 1
-#define OBJECT_BONUS 2
+#define OBJECT_SMALL_BONUS 2
 #define OBJECT_BIG_BONUS 3
 #define OBJECT_CHANGE_TABLE_LEFT 4
 #define OBJECT_CHANGE_TABLE_RIGHT 5
@@ -48,7 +48,7 @@ extern double gravity;
 
 void calculatePhysics(int deltaTime);
 
-uint8_t checkCollision(uint16_t positionX, uint16_t positionY);
+int checkCollision(uint16_t positionX, uint16_t positionY);
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle);
 uint8_t checkPolygonCollision(uint16_t positionX, uint16_t positionY, collision_poly *poly);
 uint8_t checkLineCollision(uint16_t positionX, uint16_t positionY, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
