@@ -24,8 +24,8 @@ static const uint16_t
 		centerY = 120;
 
 double velocity[] = {120, 0};
-//double position[] = {200, 10};
 double position[] = {310, 150};
+double startposition[] = {310, 150};
 double gravity = 280; 				//standard 280
 
 double collisionPoint[] = {0, 0};
@@ -39,69 +39,81 @@ uint8_t collisionPolygonsCount = 0;
 
 double collisionSpeedMultiplier = 0.8;
 
+int absFloor(double num) {
+	if (num > 0) {
+		return floor(num);
+	} else {
+		return ceil(num);
+	}
+}
+
+int deltaTimeStore = 0;
 void calculatePhysics(int deltaTime) {
-	double deltaSeconds = ((double) deltaTime) / 1000.0;
+	double deltaSeconds = ((double) (deltaTime + deltaTimeStore)) / 1000.0;
 
 	//Add gravity to velocity
 	velocity[1] += gravity * deltaSeconds;
 
 	//Update position based on velocity
-	int16_t totalDeltaX = (velocity[0] * deltaSeconds);
-	int16_t totalDeltaY = (velocity[1] * deltaSeconds);
+	volatile float totalDeltaX = (velocity[0] * deltaSeconds);
+	volatile float totalDeltaY = (velocity[1] * deltaSeconds);
 
-	int16_t newPositionX = position[0];
-	int16_t newPositionY = position[1];
-
-	if (checkCollision(position[0] + totalDeltaX, position[1] + totalDeltaY)) {
-		int16_t numberSteps = 0;
-		if (totalDeltaX > totalDeltaY) {
-			numberSteps = totalDeltaX;
-		} else {
-			numberSteps = totalDeltaY;
-		}
-
-		volatile int16_t dx = 0;
-		volatile int16_t dy = 0;
-		for (uint16_t steps = 0; steps <= numberSteps; steps++) {
-			int16_t newDx = totalDeltaX / numberSteps * steps;
-			int16_t newDy = totalDeltaY / numberSteps * steps;
-			if (checkCollision(position[0] + newDx, position[1] + newDy)) {
-				newPositionX += dx;
-				newPositionY += dy;
-				break;
-			}
-
-			dx = newDx;
-			dy = newDy;
-		}
-
-		volatile double dot = DOT_PRODUCT(velocity, collisionNormal);
-		velocity[0] = 1 * velocity[0] - 1.8 * dot * collisionNormal[0];
-		velocity[1] = 1 * velocity[1] - 1.8 * dot * collisionNormal[1];
-
+	volatile int16_t numberSteps = 0;
+	if (abs(totalDeltaX) > abs(totalDeltaY)) {
+		numberSteps = abs(totalDeltaX);
 	} else {
-		newPositionX += totalDeltaX;
-		newPositionY += totalDeltaY;
+		numberSteps = abs(totalDeltaY);
 	}
 
-	position[0] = newPositionX;
-	position[1] = newPositionY;
+	if (numberSteps == 0) {
+		deltaTimeStore += deltaTime;
+		return;
+	} else {
+		deltaTimeStore = 0;
+	}
+
+	double deltaXStep = totalDeltaX / numberSteps;
+	double deltaYStep = totalDeltaY / numberSteps;
+	volatile int16_t dx = 0;
+	volatile int16_t dy = 0;
+	for (uint16_t steps = 1; steps <= numberSteps; steps++) {
+		volatile int16_t newDx = absFloor(deltaXStep * steps);
+		volatile int16_t newDy = absFloor(deltaYStep * steps);
+		int objId = checkCollision(position[0] + newDx, position[1] + newDy);
+		if (objId != OBJECT_NONE) {
+			position[0] += dx;
+			position[1] += dy;
+			volatile double dot = DOT_PRODUCT(velocity, collisionNormal);
+			velocity[0] = 1 * velocity[0] - 1.45 * dot * collisionNormal[0];
+			velocity[1] = 1 * velocity[1] - 1.45 * dot * collisionNormal[1];
+
+			checkColissionObject(objId);
+
+			return;
+		}
+
+		dx = newDx;
+		dy = newDy;
+	}
+
+	position[0] += absFloor(deltaXStep * numberSteps);
+	position[1] += absFloor(deltaYStep * numberSteps);
 }
 
-uint8_t checkCollision(uint16_t positionX, uint16_t positionY) {
+int checkCollision(uint16_t positionX, uint16_t positionY) {
 	for (int i = 0; i < collisionCirclesCount; i++) {
 		if (checkCircleCollision(positionX, positionY, &collisionCircles[i])) {
-			return TRUE;
+			return collisionCircles[i]->id;
 		}
 	}
 
 	for (int i = 0; i < collisionPolygonsCount; i++) {
 		if (checkPolygonCollision(positionX, positionY, &collisionPolygons[i])) {
-			return TRUE;
+			return collisionPolygons[i]->id;
 		}
 	}
 
-	return FALSE;
+	return OBJECT_NONE;
 }
 
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle) {

@@ -14,11 +14,15 @@
 #include <math.h>
 
 #define BALL_RADIUS 6
-#define DEBUG FALSE
+#define DEBUG TRUE
 
+#define OBJECT_NONE -1
 #define OBJECT_ENV 0
 #define OBJECT_NORMAL 1
 #define OBJECT_BONUS 2
+#define OBJECT_BIG_BONUS 3
+#define OBJECT_CHANGE_TABLE_LEFT 4
+#define OBJECT_CHANGE_TABLE_RIGHT 5
 
 #define DIST(x1, y1, x2, y2) sqrt(((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2)))
 #define LEN(v) sqrt(v[0] * v[0] + v[1] * v[1])
@@ -39,6 +43,7 @@ typedef struct collision_poly {
 
 extern double velocity[];
 extern double position[];
+extern double startposition[];
 extern double gravity;
 
 void calculatePhysics(int deltaTime);
