@@ -23,10 +23,10 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
-double velocity[] = {120, 0};
+double velocity[] = {0, 0}; 		// {120, 0}
 double position[] = {310, 150};
 double startposition[] = {310, 150};
-double gravity = 280; 				//standard 280
+double gravity = 400; 				//standard 280, 120 for start?
 
 double collisionPoint[] = {0, 0};
 double collisionNormal[] = {0, 0};

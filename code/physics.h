@@ -14,7 +14,7 @@
 #include <math.h>
 
 #define BALL_RADIUS 6
-#define DEBUG TRUE
+#define DEBUG FALSE
 
 #define OBJECT_NONE -1
 #define OBJECT_ENV 0

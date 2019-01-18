@@ -33,7 +33,8 @@ TaskHandle_t	drawTaskHandle = NULL,
 				checkButtonHandle = NULL,
 				TaskControllerHandle = NULL,
 				UserStatsHandle = NULL,
-				UserActionsHandle = NULL;
+				UserActionsHandle = NULL,
+				AnimationTimerTaskHandle = NULL;
 
 
 
@@ -41,14 +42,13 @@ TaskHandle_t	drawTaskHandle = NULL,
 #define STACK_SIZE 200
 StaticTask_t xTaskBuffer;
 StackType_t xStack[ STACK_SIZE ];
-TaskHandle_t CircleDisappearStaticHandle = NULL;
+
 
 
 // creating of semaphores
 //SemaphoreHandle_t	CountButtonASemaphore;
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // GLOBAL VARIABLES
-
 
 int8_t intDrawScreen = 1;
 int8_t intSelectedMode = 1;
@@ -59,14 +59,20 @@ int8_t intTableTwo = 2;
 int8_t intActTable = 2;		//select [1:3] for table on display
 int8_t intScreenBeforePause = 0;
 int16_t intGainStartLever = 0;
-int8_t intAnimation = 0; //select 1 for animation1 or 2 for animation 2
+int8_t 	intStartAreaClosed = 0;
+
+// global variables for animations
+int8_t intAnimation = 0; 					//select 1 for animation1 or 2 for animation 2
 int8_t coinRadiusHittable = 5;
 color_t colorFillCircleTableTwo = Silver;
 color_t colorDrawCircleTableTwo = Black;
-int8_t 	intStartAreaClosed = 0;
+color_t colorCoinsTableThree = Yellow;
+int8_t animationCounterTableThree = 1;
+int8_t startBigAnimationTableThree = 1;		// flag to start animation
+int8_t bumperRadiusTableOne = 50;
+int8_t startBigAnimationTableOne = 0;		// flag to start animation
 
-
-// global button variables
+// global variables for button
 int8_t  intButtonA = 0,
 		intButtonB = 0,
 		intButtonC = 0,
@@ -74,7 +80,7 @@ int8_t  intButtonA = 0,
 		intButtonE = 0,
 		intButtonK = 0;
 
-// stats
+// global variables for stats
 int8_t intPlayerLevel = 1;
 
 int32_t intScoreSingle = 0;				// singleplayer high scores
@@ -87,7 +93,7 @@ int32_t intScoreSecondMulti = 0;
 int32_t intScoreThirdMulti = 0;
 int32_t intPassedTime = 0;
 int8_t intFPS = 0;
-int8_t intLifes = 3;
+int8_t intLifes = 1;
 int8_t gameover = 0;
 
 
@@ -182,7 +188,6 @@ void checkCollisionObject(uint8_t id){
 			break;
 		case 2:				// small bonus
 			intScoreSingle = intScoreSingle + 200;
-			//start animation 1
 			if (intActTable == intTableTwo) {
 				// lets circle bumper disappear & appear
 				if (colorFillCircleTableTwo == Silver) {
@@ -194,18 +199,34 @@ void checkCollisionObject(uint8_t id){
 				}
 
 			} else if (intActTable == intTableOne) {
+				if (bumperRadiusTableOne >= 5) {
+					bumperRadiusTableOne = bumperRadiusTableOne - 5;
+				}
 			} else if (intActTable == intTableThree) {
+				startBigAnimationTableThree = 1;
+
+				if(colorCoinsTableThree == Yellow){
+					colorCoinsTableThree =Pink;
+				}else if (colorCoinsTableThree == Pink){
+					colorCoinsTableThree = Green;
+				}else if (colorCoinsTableThree == Green){
+					colorCoinsTableThree = Blue;
+				}else if(colorCoinsTableThree == Blue){
+					colorCoinsTableThree = Yellow;
+				}
 			}
 			break;
 		case 3:				// big bonus
 			intScoreSingle = intScoreSingle + 300;
 			//start animation 2
 			if(intActTable == intTableTwo){
-				coinRadiusHittable = coinRadiusHittable + 10;		//coin size on table increases
+				coinRadiusHittable = coinRadiusHittable + 10;		// coin size on table increases
 			} else if(intActTable == intTableOne){
-				coinRadiusHittable = 10;							//reset coin size
+				coinRadiusHittable = 10;							// reset coin size
+				startBigAnimationTableOne = 1;						// flag for starting animation
 			} else if(intActTable == intTableThree){
-				coinRadiusHittable = 10;							//reset coin size
+				coinRadiusHittable = 10;							// reset coin size
+				startBigAnimationTableThree = 1;					// flag for starting animation
 			}
 			break;
 		case 4:				// change table left
@@ -291,35 +312,66 @@ void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	drawPinballThickLineRound(coordHoleRightX, 58, coordHoleRightX + 20, 38, Black, 5);
 
 	// bumper
-	drawPinballThickLine(coordHoleLeftX + 2, 58,coordHoleLeftX + 20 + 2, 38, Green, 2); // left bumper bowl
-	drawPinballThickLine(coordHoleRightX - 20 - 2, 38, coordHoleRightX - 2, 58, Green, 2); // right bumper bowl
+	drawPinballThickLineWithId(coordHoleLeftX + 2, 58,coordHoleLeftX + 20 + 2, 38, Green, 2, OBJECT_SMALL_BONUS); // left bumper bowl
+	drawPinballThickLineWithId(coordHoleRightX - 20 - 2, 38, coordHoleRightX - 2, 58, Green, 2, OBJECT_SMALL_BONUS); // right bumper bowl
 
 	// upper bumper
 	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
-	drawPinballThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2);
+	drawPinballThickLineWithId(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Blue, 2, OBJECT_BIG_BONUS);
 	drawPinballThickLineRound(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5);		// right upper bumper
-	drawPinballThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2);
+	drawPinballThickLineWithId(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, OBJECT_BIG_BONUS);
 
 	// coins
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
+	bigAnimationTableThree(coordGameAreaX2, coordGameAreaY2, coinRadius);
 
-	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-
-	gdispFillCircle(coordGameAreaX2 / 2 + 90, coordGameAreaY2 / 2, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 
 }
+void bigAnimationTableThree(int coordGameAreaX2, int coordGameAreaY2, int coinRadius){
+	if (animationCounterTableThree == 1) {
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60,coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, colorCoinsTableThree);
+
+		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 + 30,	coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+
+		gdispFillCircle(coordGameAreaX2 / 2 + 90, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+
+	} else if (animationCounterTableThree == 2) {
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60,coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, colorCoinsTableThree);
+
+		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 + 30,	coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+
+		gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+	} else if (animationCounterTableThree == 3) {
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60,coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, colorCoinsTableThree);
+
+		gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
+	}
+}
+
 void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -335,42 +387,36 @@ void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 	drawPinballThickLineRound(coordHoleRightX - 30, 35, coordHoleRightX + 30, 32, Black, 5);		// right bowl
 	drawPinballThickLineRound(coordHoleRightX - 30 , 35, coordHoleRightX - 30, 60, Black, 5);		// right bowl
 
-	// bumper
-	drawPinballThickLine(coordHoleLeftX + 30 + 2, 35 + 2, coordHoleLeftX + 30 + 2, 60 - 2, Green, 2);// left bumper bowl
-	drawPinballThickLine(coordHoleRightX - 30 - 3, 35 + 2, coordHoleRightX - 30 - 3, 60 - 2, Green, 2);// right bumper bowl
+	// upper green bumper
+	drawPinballThickLineWithId(coordHoleLeftX + 30 + 2, 35 + 2, coordHoleLeftX + 30 + 2, 60 - 2, Green, 2, OBJECT_BIG_BONUS);// left bumper bowl
+	drawPinballThickLineWithId(coordHoleRightX - 30 - 3, 35 + 2, coordHoleRightX - 30 - 3, 60 - 2, Green, 2, OBJECT_BIG_BONUS);// right bumper bowl
 
-	// lower bumper
+	// lower blue bumper
 	drawPinballThickLineRound(coordGameAreaX1 + 50, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 , Black, 5); 		// left upper bumper
-	drawPinballThickLine(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2);
+	drawPinballThickLineWithId(coordGameAreaX1 + 50 + 3, coordGameAreaY2 - 75, coordGameAreaX1 + 50 + 40, coordGameAreaY2 - 55 -2, Blue, 2, OBJECT_NORMAL);
 	drawPinballThickLineRound(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55, coordGameAreaX2 - 50, coordGameAreaY2 - 75, Black, 5);		// right upper bumper
-	drawPinballThickLine(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2);
+	drawPinballThickLineWithId(coordGameAreaX2 - 50 - 40, coordGameAreaY2 - 55 - 2, coordGameAreaX2 - 50 - 3, coordGameAreaY2 - 75, Blue, 2, OBJECT_NORMAL);
 
 	// circle bumper
-	fillPinballCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, 25, Orange);
-	gdispDrawCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, 25, Black);
+	fillPinballCircleWithId(coordGameAreaX2 / 2, coordGameAreaY2 / 2, bumperRadiusTableOne, Orange, OBJECT_SMALL_BONUS);
+	gdispDrawCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, bumperRadiusTableOne, Black);
 
-	// coins
-	/*gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
 
-	gdispFillCircle(coordGameAreaX2 / 2 - 10, coordGameAreaY1 + 10, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 10, coordGameAreaY1 + 10, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY1 + 10, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY1 + 10, coinRadius, Yellow);
+	bigAnimationTableOne(coordHoleLeftX, coordHoleRightX);			// draws boundaries, which disappear after hitting green bumper
+}
+void bigAnimationTableOne(int coordHoleLeftX, int coordHoleRightX){
+	if(startBigAnimationTableOne == 0){
+		// closed holes for table changing
+		drawPinballThickLineRound(coordHoleLeftX - 30, 63, coordHoleLeftX + 30, 60, Gray, 3); 		// left bowl
+		drawPinballThickLineRound(coordHoleLeftX - 30, 35, coordHoleLeftX - 30, 63, Gray, 3);		// left bowl
+		drawPinballThickLineRound(coordHoleRightX - 30, 60, coordHoleRightX + 30, 63, Gray, 3);		// right bowl
+		drawPinballThickLineRound(coordHoleRightX + 30 , 35, coordHoleRightX + 30, 63, Gray, 3);		// right bowl
 
-	gdispFillCircle(coordGameAreaX2 / 2 - 15, coordGameAreaY1 + 25, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 15, coordGameAreaY1 + 25, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY1 + 25, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);
 
-	fillPinballCircle(coordGameAreaX2 / 2 - 15, coordGameAreaY1 + 25, coinRadius, Yellow);
-	fillPinballCircle(coordGameAreaX2 / 2 + 15, coordGameAreaY1 + 25, coinRadius, Yellow);
-	fillPinballCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY1 + 25, coinRadius, Yellow);
-	fillPinballCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);*/
+		drawPinballThickLineRound(0,100, 26, 140, Gray, 3);	// left gate
+		drawPinballThickLineRound(265, 140, 290, 100, Gray, 3); // right gate
 
+	}
 }
 void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
@@ -399,9 +445,9 @@ void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 
 
 	// coins
-	fillPinballCircleWithId(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadiusHittable, Yellow, OBJECT_BIG_BONUS);
+	fillPinballCircleWithId(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadiusHittable, Yellow, OBJECT_BIG_BONUS);	//hittable coin
 
-	/*gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
@@ -414,7 +460,7 @@ void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
-	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);*/
+	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 }
 // multi player table
 void drawAdditionalLeverMP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
@@ -583,7 +629,7 @@ int main() {
 	// Initializes Tasks with their respective priority
 
 	xTaskCreate(TaskController, "TaskController", 1000, NULL, 9, &TaskControllerHandle);
-	xTaskCreate(UserStats, "UserStats", 1000, NULL, 5, &UserStatsHandle);
+	xTaskCreate(UserStats, "UserStats", 1000, NULL, 7, &UserStatsHandle);
 	//xTaskCreate(uartReceive, "uartReceive", 1000, NULL, 9, &uartReceiveHandle);
 
 	// interface tasks
@@ -592,6 +638,8 @@ int main() {
 	xTaskCreate(UserActions, "UserActions", 1000, NULL, 7, &UserActionsHandle);
 	// drawing tasks
 	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
+	// animation tasks
+	xTaskCreate(AnimationTimerTask, "AnimationTimerTask", 1000, NULL, 2, &AnimationTimerTaskHandle);
 
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
@@ -674,8 +722,7 @@ void drawTask() {
 	TickType_t xWakeTime;
 	xWakeTime = xTaskGetTickCount();
 	xLastWakeTime = xWakeTime;
-	int8_t intFrameCounter = 0;
-	int16_t intTickOnLastCall = 0;
+
 
 	font_t font1, font2, font3; // Load font for ugfx
 	font1 = gdispOpenFont("DejaVuSans24*");
@@ -749,6 +796,8 @@ void drawTask() {
 			gdispDrawString(40, 80, str, font1, Black);
 			sprintf(str, "Press E to continue");
 			gdispDrawString(40, 120, str, font2, Black);
+			sprintf(str, "Credits: Simon Leier & Florian Geiser");
+			gdispDrawString(20, 220, str, font2, Black);
 			break;
 		// draw menu
 		case 2:
@@ -936,6 +985,8 @@ void drawTask() {
 			gdispClear(Black);
 			sprintf(str, "GAME OVER");
 			gdispDrawString(coordGameAreaX2 / 2 - 40, coordGameAreaY2 / 2 - 10,	str, font1, Red);
+			sprintf(str, "Press E to continue");
+			gdispDrawString(coordGameAreaX2 / 2 - 40, 220, str, font2, Red);
 		}
 
 		// Wait for display to stop writing
@@ -1143,21 +1194,15 @@ void UserStats() {
 		// user stats
 		if (intScoreSingle >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
-			gravity = 320;
+			gravity = 200;
 		} else if (intScoreSingle >= 3000 && intPlayerLevel <= 2) {
 			intPlayerLevel = 3;
 			gravity = 400;
-		} else {
-			intPlayerLevel = 1;
 		}
 
-		if (intDrawScreen == 3 || intDrawScreen == 4) { //if single player or multi player selected, start timer
+		if (intDrawScreen == 3 || intDrawScreen == 4 || gameover != 1) { //if single player or multi player selected, start timer
 			intPassedTime++;
 			vTaskDelayUntil(&xLastWakeTime, 1000);
-		} else if (intDrawScreen != 6) { //reset stats except pause screen is active
-			intPassedTime = 0;
-			intScoreSingle = 0;
-			intPlayerLevel = 1;
 		}
 
 		// life decreasing
@@ -1171,25 +1216,30 @@ void UserStats() {
 		}
 
 		// game ends
-		if (intLifes <= 0) { //if no lifes left and we're in a game
-			gameover = 1;
-
-			// refresh high score
-			if (intScoreSingle >= intScoreFirstSingle) {			//replace first
-				intScoreThirdSingle = intScoreSecondSingle;
-				intScoreSecondSingle = intScoreFirstSingle;
-				intScoreFirstSingle = intScoreSingle;
-			} else if (intScoreSingle >= intScoreSecondSingle) {	//replace second
-				intScoreThirdSingle = intScoreSecondSingle;
-				intScoreSecondSingle = intScoreSingle;
-			} else if (intScoreSingle >= intScoreThirdSingle) {		//replace third
-				intScoreThirdSingle = intScoreSingle;
-			}
+		if (intLifes <= 0) { //if no life left and we're in a game
+			gameover = 1;		// game over flag
 
 			// to get back to the menu after game ended
 			if(intButtonE){
-				gameover = 0;
 
+				gameover = 0;
+				intLifes = 3;
+
+				// refresh high score
+				if (intScoreSingle >= intScoreFirstSingle) {	//replace first
+					intScoreThirdSingle = intScoreSecondSingle;
+					intScoreSecondSingle = intScoreFirstSingle;
+					intScoreFirstSingle = intScoreSingle;
+				} else if (intScoreSingle >= intScoreSecondSingle) {//replace second
+					intScoreThirdSingle = intScoreSecondSingle;
+					intScoreSecondSingle = intScoreSingle;
+				} else if (intScoreSingle >= intScoreThirdSingle) {	//replace third
+					intScoreThirdSingle = intScoreSingle;
+				}
+
+				intScoreSingle = 0;			// reset stats
+				intPassedTime = 0;
+				intPlayerLevel = 1;
 			}
 
 		}
@@ -1198,6 +1248,31 @@ void UserStats() {
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
+void AnimationTimerTask(){
+	TickType_t xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+
+	while (1) {
+
+		if(startBigAnimationTableThree == 1){
+
+			for (int i; i < 10; i++) {
+				vTaskDelayUntil(&xLastWakeTime, 500);
+				if (animationCounterTableThree == 3) {
+					animationCounterTableThree = 1;
+				} else if (animationCounterTableThree == 1) {
+					animationCounterTableThree = 2;
+				} else if (animationCounterTableThree == 2) {
+					animationCounterTableThree = 3;
+				}
+			}
+			startBigAnimationTableThree = 0;
+		}
+
+		vTaskDelay(100);
+	}
+
+}
 /* Static Task Example
 void CircleDisappearStatic(void * pvParameters){
 	configASSERT( ( uint32_t ) pvParameters == 1UL );

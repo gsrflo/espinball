@@ -24,6 +24,7 @@ void drawTask();
 void TaskController();
 void UserStats();
 void UserActions();
+void AnimationTimerTask();
 
 
 
