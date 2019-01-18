@@ -26,6 +26,7 @@ static const uint16_t
 double velocity[] = {120, 0};
 //double position[] = {200, 10};
 double position[] = {310, 150};
+double gravity = 280; 				//standard 280
 
 double collisionPoint[] = {0, 0};
 double collisionNormal[] = {0, 0};
@@ -42,7 +43,7 @@ void calculatePhysics(int deltaTime) {
 	double deltaSeconds = ((double) deltaTime) / 1000.0;
 
 	//Add gravity to velocity
-	velocity[1] += GRAVITY * deltaSeconds;
+	velocity[1] += gravity * deltaSeconds;
 
 	//Update position based on velocity
 	int16_t totalDeltaX = (velocity[0] * deltaSeconds);

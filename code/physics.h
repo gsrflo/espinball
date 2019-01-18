@@ -14,8 +14,7 @@
 #include <math.h>
 
 #define BALL_RADIUS 6
-#define GRAVITY 280
-#define DEBUG TRUE
+#define DEBUG FALSE
 
 #define OBJECT_ENV 0
 #define OBJECT_NORMAL 1
@@ -40,6 +39,7 @@ typedef struct collision_poly {
 
 extern double velocity[];
 extern double position[];
+extern double gravity;
 
 void calculatePhysics(int deltaTime);
 

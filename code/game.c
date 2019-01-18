@@ -52,10 +52,10 @@ SemaphoreHandle_t	CountButtonASemaphore;
 int8_t intDrawScreen = 1;
 int8_t intSelectedMode = 1;
 
-int8_t intTableStart = 2;
-int8_t intTableLeft = 1;
-int8_t intTableRight = 3;
-int8_t intActTable = 3;		//select [1:3] for table on display
+int8_t intTableThree = 3;
+int8_t intTableOne = 1;
+int8_t intTableTwo = 2;
+int8_t intActTable = 2;		//select [1:3] for table on display
 int8_t intScreenBeforePause = 0;
 int16_t intGainStartLever = 0;
 int8_t intAnimation = 0; //select 1 for animation1 or 2 for animation 2
@@ -83,6 +83,7 @@ int32_t intScoreThirdMulti = 0;
 int32_t intPassedTime = 0;
 int8_t intFPS = 0;
 int8_t intLifes = 3;
+int8_t gameover = 0;
 
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -160,7 +161,7 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
 void checkCloseStartArea(int coordStartAreaX){
-	if (position[0] < coordStartAreaX || intStartAreaClosed == 1) {
+	if (position[0] < coordStartAreaX - 10 || intStartAreaClosed == 1) {
 		drawPinballThickLine(coordStartAreaX, 60, coordStartAreaX, 90, Black, 5); //upper lines
 		intStartAreaClosed = 1;
 	}
@@ -179,7 +180,7 @@ void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coo
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
 
 }
-void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
+void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
 	fillPinballCircle(coordHoleLeftX, coordHoleLeftY, 10, Red);
@@ -219,7 +220,7 @@ void drawTableStart(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 	gdispFillCircle(coordGameAreaX2 / 2 - 90, coordGameAreaY2 / 2, coinRadius, Yellow);
 
 }
-void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
+void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
@@ -267,7 +268,7 @@ void drawTableLeft(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, 
 	fillPinballCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY1 + 25, coinRadius, Yellow);*/
 
 }
-void drawTableRight(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
+void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
@@ -631,16 +632,16 @@ void drawTask() {
 		case 3: // singleplayer  mode
 
 			/****** LEVEL *****/
-			if (intActTable == intTableStart) {
-				drawTableStart(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+			if (intActTable == intTableThree) {
+				drawTableThree(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
 				drawAdditionalLeverSP(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 				checkCloseStartArea(coordStartAreaX);
 
-			} else if (intActTable == intTableLeft) {
-				drawTableLeft(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+			} else if (intActTable == intTableOne) {
+				drawTableOne(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
 				checkCloseStartArea(coordStartAreaX);
-			} else if (intActTable == intTableRight) {
-				drawTableRight(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
+			} else if (intActTable == intTableTwo) {
+				drawTableTwo(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
 				checkCloseStartArea(coordStartAreaX);
 			}
 			// necessary for each table
@@ -699,8 +700,6 @@ void drawTask() {
 
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
 
-
-
 			//***INPUTS***
 			if (intButtonB) {
 				if (coordRightLeverY1 != coordRightLeverY1Triggered) {
@@ -747,11 +746,11 @@ void drawTask() {
 								coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY1, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 			drawAdditionalLeverMP(coordRightLeverX1, coordRightLeverY1, coordRightLeverX2, coordRightLeverY2, coordLeftLeverX1, coordLeftLeverY1, coordLeftLeverX2, coordLeftLeverY2, coordRightLeverY1Idle, coordLeftLeverY2Idle, thickLever);
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
-			checkStart(coordStartAreaX);			
+			checkStart(coordStartAreaX);
+			checkCloseStartArea(coordStartAreaX);
 			calculatePhysics(xWakeTime - xLastWakeTime);
 			drawBall();
 
-			checkCloseStartArea(coordStartAreaX);
 
 			//***INPUTS***
 			if (intButtonB) {
@@ -795,7 +794,7 @@ void drawTask() {
 
 			break;
 		case 6: //pause mode
-			gdispClear(Black);
+			gdispClear(Gray);
 			sprintf(str, "PAUSE");
 			gdispDrawString(coordGameAreaX2 / 2 - 10, coordGameAreaY2 / 2 - 10,	str, font1, Red);
 			break;
@@ -803,7 +802,11 @@ void drawTask() {
 			break;
 		}
 
-
+		if(gameover){
+			gdispClear(Black);
+			sprintf(str, "GAME OVER");
+			gdispDrawString(coordGameAreaX2 / 2 - 20, coordGameAreaY2 / 2 - 10,	str, font1, Red);
+		}
 
 		// Wait for display to stop writing
 		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
@@ -1010,8 +1013,10 @@ void UserStats() {
 		// user stats
 		if (intScoreSingle >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
+			gravity = 320;
 		} else if (intScoreSingle >= 3000 && intPlayerLevel <= 2) {
 			intPlayerLevel = 3;
+			gravity = 400;
 		} else {
 			intPlayerLevel = 1;
 		}
@@ -1026,7 +1031,7 @@ void UserStats() {
 		}
 
 		// life decreasing
-		if((position[0] > 320 || position[0] < 0 || position[1] > 240 || position[1] < 0) && intLifes >= 0){
+		if((position[0] > 320 || position[0] < 0 || position[1] > 240 || position[1] < 0) && intLifes > 0){
 			intLifes--;
 			position[0] = 310; 		// start position x
 			position[1] = 150;		// start position y
@@ -1038,6 +1043,7 @@ void UserStats() {
 		// game ends
 		if (intLifes <= 0) {
 			//ToDo: Write On Display "Game Over"
+			gameover = 1;
 
 			// refresh high score
 			if (intScoreSingle >= intScoreFirstSingle) {			//replace first
