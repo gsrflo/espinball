@@ -5,14 +5,7 @@
  *
  *
  */
-
-/* ToDo
- *
- *
-*/
-
 #include "includes.h"
-
 
 // start and stop bytes for the UART protocol
 
@@ -45,11 +38,9 @@ StackType_t xStack[ STACK_SIZE ];
 
 
 
-// creating of semaphores
-//SemaphoreHandle_t	CountButtonASemaphore;
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // GLOBAL VARIABLES
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 int8_t intDrawScreen = 1;
 int8_t intSelectedMode = 1;
 
@@ -68,9 +59,10 @@ color_t colorFillCircleTableTwo = Silver;
 color_t colorDrawCircleTableTwo = Black;
 color_t colorCoinsTableThree = Yellow;
 int8_t animationCounterTableThree = 1;
-int8_t startBigAnimationTableThree = 1;		// flag to start animation
 int8_t bumperRadiusTableOne = 50;
 int8_t startBigAnimationTableOne = 0;		// flag to start animation
+int8_t startBigAnimationTableTwo = 0;		// flag to start animation
+int8_t startBigAnimationTableThree = 0;		// flag to start animation
 
 // global variables for button
 int8_t  intButtonA = 0,
@@ -83,56 +75,63 @@ int8_t  intButtonA = 0,
 // global variables for stats
 int8_t intPlayerLevel = 1;
 
-int32_t intScoreSingle = 0;				// singleplayer high scores
-int32_t intScoreFirstSingle = 0;
-int32_t intScoreSecondSingle = 0;
-int32_t intScoreThirdSingle = 0;
-int32_t intScoreMulti = 0;				// multiplayer high scores
-int32_t intScoreFirstMulti = 0;
-int32_t intScoreSecondMulti = 0;
-int32_t intScoreThirdMulti = 0;
-int32_t intPassedTime = 0;
+int intScoreSingle = 0;				// singleplayer high scores
+int intScoreFirstSingle = 0;
+int intScoreSecondSingle = 0;
+int intScoreThirdSingle = 0;
+int intScoreMulti = 0;				// multiplayer high scores
+int intScoreFirstMulti = 0;
+int intScoreSecondMulti = 0;
+int intScoreThirdMulti = 0;
+int intPassedTime = 0;
 int8_t intFPS = 0;
-int8_t intLifes = 1;
+int8_t intLifes = 3;
 int8_t gameover = 0;
+int8_t flagGameMode = 0;				// 1 for single player, 2 for multi player
 
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // FUNCTIONS
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void fillPinballCircleWithId(uint16_t x, uint16_t y, uint8_t radius, color_t color, uint16_t id){
 	gdispFillCircle(x, y, radius, color);
 	registerCollisionCircle(x, y, radius, id);
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color) {
 	fillPinballCircleWithId(x, y, radius, color, OBJECT_ENV);
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
 	registerCollisionLine(x1, y1, x2, y2, OBJECT_ENV);
 
-	registerCollisionCircle(x1, y1, 2, OBJECT_ENV);
-	registerCollisionCircle(x2, y2, 2, OBJECT_ENV);
+	registerCollisionCircle(x1, y1, 3, OBJECT_ENV);
+	registerCollisionCircle(x2, y2, 3, OBJECT_ENV);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 2, Red);
-		gdispFillCircle(x2, y2, 2, Red);
+		gdispFillCircle(x1, y1, 3, Red);
+		gdispFillCircle(x2, y2, 3, Red);
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width, uint16_t id){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
 	registerCollisionLine(x1, y1, x2, y2, id);
 
-	registerCollisionCircle(x1, y1, 2, id);
-	registerCollisionCircle(x2, y2, 2, id);
+	registerCollisionCircle(x1, y1, 3, id);
+	registerCollisionCircle(x2, y2, 3, id);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 2, Red);
-		gdispFillCircle(x2, y2, 2, Red);
+		gdispFillCircle(x1, y1, 3, Red);
+		gdispFillCircle(x2, y2, 3, Red);
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	drawPinballThickLineWithId(x1, y1, x2, y2, color, width, OBJECT_ENV);
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
@@ -171,12 +170,14 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void checkCloseStartArea(int coordStartAreaX){
 	if (position[0] < coordStartAreaX - 10 || intStartAreaClosed == 1) {
 		drawPinballThickLine(coordStartAreaX, 60, coordStartAreaX, 90, Black, 5); //upper lines
 		intStartAreaClosed = 1;
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void checkCollisionObject(uint8_t id){
 
 	if(intDrawScreen == 3) {			// single player score
@@ -188,6 +189,7 @@ void checkCollisionObject(uint8_t id){
 			break;
 		case 2:				// small bonus
 			intScoreSingle = intScoreSingle + 200;
+			// start small animation
 			if (intActTable == intTableTwo) {
 				// lets circle bumper disappear & appear
 				if (colorFillCircleTableTwo == Silver) {
@@ -197,14 +199,13 @@ void checkCollisionObject(uint8_t id){
 					colorFillCircleTableTwo = Silver;
 					colorDrawCircleTableTwo = Black;
 				}
-
 			} else if (intActTable == intTableOne) {
+				// bumper radius decreases
 				if (bumperRadiusTableOne >= 5) {
 					bumperRadiusTableOne = bumperRadiusTableOne - 5;
 				}
 			} else if (intActTable == intTableThree) {
-				startBigAnimationTableThree = 1;
-
+				// coins change color
 				if(colorCoinsTableThree == Yellow){
 					colorCoinsTableThree =Pink;
 				}else if (colorCoinsTableThree == Pink){
@@ -218,14 +219,12 @@ void checkCollisionObject(uint8_t id){
 			break;
 		case 3:				// big bonus
 			intScoreSingle = intScoreSingle + 300;
-			//start animation 2
+			//start big animation
 			if(intActTable == intTableTwo){
-				coinRadiusHittable = coinRadiusHittable + 10;		// coin size on table increases
+				startBigAnimationTableTwo = 1;						// flag for starting animation
 			} else if(intActTable == intTableOne){
-				coinRadiusHittable = 10;							// reset coin size
 				startBigAnimationTableOne = 1;						// flag for starting animation
 			} else if(intActTable == intTableThree){
-				coinRadiusHittable = 10;							// reset coin size
 				startBigAnimationTableThree = 1;					// flag for starting animation
 			}
 			break;
@@ -284,7 +283,9 @@ void checkCollisionObject(uint8_t id){
 	}
 
 }
-// single player tables
+/*------------------------------------------------------------------------------------------------------------------------------*/
+// single player tables functions
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
 		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
 
@@ -298,6 +299,7 @@ void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coo
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
 
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
@@ -326,6 +328,7 @@ void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 
 
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void bigAnimationTableThree(int coordGameAreaX2, int coordGameAreaY2, int coinRadius){
 	if (animationCounterTableThree == 1) {
 		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60,coinRadius, colorCoinsTableThree);
@@ -371,7 +374,7 @@ void bigAnimationTableThree(int coordGameAreaX2, int coordGameAreaY2, int coinRa
 		gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2, coinRadius, colorCoinsTableThree);
 	}
 }
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -404,6 +407,7 @@ void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 
 	bigAnimationTableOne(coordHoleLeftX, coordHoleRightX);			// draws boundaries, which disappear after hitting green bumper
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void bigAnimationTableOne(int coordHoleLeftX, int coordHoleRightX){
 	if(startBigAnimationTableOne == 0){
 		// closed holes for table changing
@@ -418,6 +422,7 @@ void bigAnimationTableOne(int coordHoleLeftX, int coordHoleRightX){
 
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -462,28 +467,31 @@ void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
 }
-// multi player table
+/*------------------------------------------------------------------------------------------------------------------------------*/
+// multi player table functions
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawAdditionalLeverMP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
 		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
 
 	//additional pair of lever
 	// lever
-	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Blue, thickLever);
-	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Green, thickLever);
+	drawPinballThickLineRound(coordRightLeverX1, coordRightLeverY1 - 90, coordRightLeverX2, coordRightLeverY2 - 90, Green, thickLever);
+	drawPinballThickLineRound(coordLeftLeverX1, coordLeftLeverY1 - 90, coordLeftLeverX2, coordLeftLeverY2 - 90, Blue, thickLever);
 
 	// obstacles horizontal
 	drawPinballThickLineRound(coordRightLeverX2, coordRightLeverY2 - 90, coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 90, Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 90, coordLeftLeverX1, coordLeftLeverY1 - 90, Black, thickLever);
 
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
-	drawPinballThickLineRound(coordGameAreaX2 / 2 - 80, 50, coordGameAreaX2 / 2, 10, Black, 5);		// left bowl
-	drawPinballThickLineRound(coordGameAreaX2 / 2, 10, coordGameAreaX2 / 2 + 80, 50, Black, 5);		// right bowl
+	drawPinballThickLineRound(coordGameAreaX2 / 2 - 80, 50, coordGameAreaX2 / 2, 10, Black, 5);		// left side big bowl
+	drawPinballThickLineRound(coordGameAreaX2 / 2, 10, coordGameAreaX2 / 2 + 80, 50, Black, 5);		// right side big bowl
 	// bumper
-	drawPinballThickLine(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2);// left bumper bowl
-	drawPinballThickLine(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2);// right bumper bowl
+	drawPinballThickLine(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2);// left bumper
+	drawPinballThickLine(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2);// right bumper
 	// upper bumper
 	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
 	drawPinballThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Green, 2);
@@ -491,14 +499,35 @@ void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleR
 	drawPinballThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2);
 
 	// round bumper
-	fillPinballCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 50, 10, Green);
-	gdispDrawCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 /  2 - 50, 10, Black);
+	fillPinballCircle(coordGameAreaX2 / 2 - 80 , 20, 10, Blue);		//left bumper
+	gdispDrawCircle(coordGameAreaX2 / 2 - 80, 20, 10, Black);
 
-	fillPinballCircle(coordGameAreaX2 / 2 - 30 , coordGameAreaY2 / 2 - 50, 10, Blue);
-	gdispDrawCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 50, 10, Black);
+	fillPinballCircle(coordGameAreaX2 / 2 + 80, 20, 10, Green);		//right bumper
+	gdispDrawCircle(coordGameAreaX2 / 2 + 80, 20, 10, Black);
 
+	fillPinballCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, 10, Black);		//black middle bumper
+
+	// coins
+	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
+
+	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 - 30, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 30, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 + 60, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
+	gdispFillCircle(coordGameAreaX2 / 2 - 60, coordGameAreaY2 / 2 - 60, coinRadius, Yellow);
 
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
@@ -535,15 +564,16 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 	drawPinballThickLineRound(coordStartAreaX + 4, 200 + intGainStartLever, coordStartAreaX + 24, 200 + intGainStartLever, Red, 3);
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
+// main draw functions
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 void drawMenu(){
 	char str[100]; // buffer for messages to draw to display
 
-	font_t font1, font2, font3; // Load font for ugfx
+	font_t font1; // Load font for ugfx
 	font1 = gdispOpenFont("DejaVuSans24*");
-	font2 = gdispOpenFont("DejaVuSans16*");
-	font3 = gdispOpenFont("DejaVuSans12*");
+
 
 	// Mode Selection on second screen
 	if (intButtonA && intSelectedMode > 1) {
@@ -597,12 +627,12 @@ void drawMenu(){
 		break;
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void drawStats(int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2){
 	char str[100]; // buffer for messages to draw to display
 
-	font_t font1, font2, font3; // Load font for ugfx
+	font_t font1, font3; // Load font for ugfx
 	font1 = gdispOpenFont("DejaVuSans24*");
-	font2 = gdispOpenFont("DejaVuSans16*");
 	font3 = gdispOpenFont("DejaVuSans12*");
 
 	//***STATS***
@@ -619,6 +649,9 @@ void drawStats(int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, in
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
+// MAIN PROGRAM CODE STARTS HERE
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 int main() {
 	// Initialize Board functions and graphics
 	ESPL_SystemInit();
@@ -639,7 +672,7 @@ int main() {
 	// drawing tasks
 	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
 	// animation tasks
-	xTaskCreate(AnimationTimerTask, "AnimationTimerTask", 1000, NULL, 2, &AnimationTimerTaskHandle);
+	xTaskCreate(AnimationTimerTask, "AnimationTimerTask", 1000, NULL, 3, &AnimationTimerTaskHandle);
 
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
@@ -697,7 +730,7 @@ void checkStart(int coordStartAreaX) {
 		}
 	}
 }
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordYTriggered, int coordY2) {
 	if (coordY != coordYTriggered) {
 		for (int i = 0; i < 20; i++) {
@@ -711,6 +744,7 @@ void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordY
 		}
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 void drawTask() {
 
@@ -728,7 +762,6 @@ void drawTask() {
 	font1 = gdispOpenFont("DejaVuSans24*");
 	font2 = gdispOpenFont("DejaVuSans16*");
 	font3 = gdispOpenFont("DejaVuSans12*");
-
 
 	// LEVEL
 	const int8_t thickLever = 3;
@@ -760,16 +793,6 @@ void drawTask() {
 	int coordLeftLeverY1 = 200;
 	int coordLeftLeverX2 = coordGameAreaX2 / 2 - 20;
 	int coordLeftLeverY2 = 220; //coordLeftLeverY2Idle;
-
-	//animation
-	int32_t intAnimationTime = 0;
-	int coordAnimationOneX = 0;
-	int coordAnimationOneY = 50;
-	int coordAnimationTwoX1 = 0;
-	int coordAnimationTwoY1 = 0;
-	int coordAnimationTwoX2 = 150;
-	int coordAnimationTwoY2 = 50;
-
 
 	// Start endless loop
 	while (TRUE) {
@@ -805,6 +828,8 @@ void drawTask() {
 			break;
 		case 3: // singleplayer  mode
 
+			flagGameMode = 1; 				// sets game mode flat to single player
+
 			/****** LEVEL *****/
 			if (intActTable == intTableThree) {
 				drawTableThree(coordHoleLeftX, coordHoleLeftY - 12, coordHoleRightX, coordHoleRightY - 12, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
@@ -826,78 +851,24 @@ void drawTask() {
 			drawBall();
 
 
-			//***ANIMATIONS***
-			// animation 1 stops after 1000 calls
-			// animation 2 stops after 3000 calls
-			switch(intAnimation){
-			case 1:
-				if (intAnimationTime < 1000)
-				{
-					sprintf(str, "NICE!");
-					gdispDrawString(coordAnimationOneX, coordAnimationOneY, str, font1, Blue);
-					coordAnimationOneX++;
-					intAnimationTime++;
-				}
-				else {
-					intAnimationTime = 0;
-					coordAnimationOneX = 0;
-				}
-				break;
-			case 2:
-				if (intAnimationTime < 3000) {
-					if (intAnimationTime % 9){
-						gdispFillArea(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Lime);
-						sprintf(str, "INSANE!!!");
-						gdispDrawString(coordAnimationTwoX1 + 10, coordAnimationTwoY1 + 15, str, font1, Red);
-					}
-					else if (intAnimationTime % 8) {
-						gdispFillArea(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Blue);
-						sprintf(str, "INSANE!!!");
-						gdispDrawString(coordAnimationTwoX1 + 10, coordAnimationTwoY1 + 15, str, font1, Red);
-					}
-					gdispDrawBox(coordAnimationTwoX1, coordAnimationTwoY1, coordAnimationTwoX2, coordAnimationTwoY2, Black);
-
-					coordAnimationTwoX1++;
-					coordAnimationTwoY1++;
-					intAnimationTime++;
-				} else {
-					intAnimationTime = 0;
-					coordAnimationTwoX1 = 0;
-					coordAnimationTwoY1 = 0;
-				}
-				break;
-			case 3:
-				break;
-			default:
-				break;
-			}
-
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
 
 			//***INPUTS***
 			if (intButtonB) {
-				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
-						coordRightLeverY1Triggered, coordRightLeverY2);
-
+				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,coordRightLeverY1Triggered, coordRightLeverY2);
 				if (intActTable == 3) {
-					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
-							coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
+					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90, coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
 				}
-
 				coordRightLeverY1 = coordRightLeverY1Triggered;
 			} else {
 				coordRightLeverY1 = coordRightLeverY1Idle;
 			}
 
 			if (intButtonD) {
-				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle,
-						coordLeftLeverY2Triggered, coordRightLeverY1);
-
+				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle, coordLeftLeverY2Triggered, coordRightLeverY1);
 				if (intActTable == 3) {
-					checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
-							coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
+					checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90, coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
 				}
-
 				coordLeftLeverY2 = coordLeftLeverY2Triggered;
 			} else {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;
@@ -907,9 +878,10 @@ void drawTask() {
 
 
 		case 4: // multiplayer mode
-			sprintf(str, "Multiplayer mode");
-			gdispDrawString(50, 110, str, font1, Black);
 
+			flagGameMode = 2; 				// sets game mode flat to multi player
+
+			/****** LEVEL *****/
 			drawTableMultiPlayer(coordHoleLeftX, coordHoleLeftY, coordHoleRightX, coordHoleRightY, coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2, coinRadius);
 
 			drawTableMultiPlayerEssentials(coordStartAreaX, startAreaSize, coordGameAreaY2, coordGameAreaX2,
@@ -998,11 +970,6 @@ void drawTask() {
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
-
-
-
 /**
  * This task polls the joystick value every 20 ticks
  */
@@ -1023,11 +990,12 @@ void checkJoystick() {
 		vTaskDelayUntil(&xLastWakeTime, tickFramerate);
 	}
 }
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 void checkButton() {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
-	const TickType_t tickFramerate = 50;
+	const TickType_t tickFramerate = 100;
 
 	int8_t FlagButtonA = 0;
 	int8_t FlagButtonB = 0;
@@ -1154,7 +1122,7 @@ void uartReceive() {
 		}
 	}
 }
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 void UserActions(){
 	struct coord joystickPosition; // joystick queue input buffer
 	while (TRUE) {
@@ -1194,10 +1162,10 @@ void UserStats() {
 		// user stats
 		if (intScoreSingle >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
-			gravity = 200;
+			//velocity multiplier
 		} else if (intScoreSingle >= 3000 && intPlayerLevel <= 2) {
 			intPlayerLevel = 3;
-			gravity = 400;
+			//velocity multiplier
 		}
 
 		if (intDrawScreen == 3 || intDrawScreen == 4 || gameover != 1) { //if single player or multi player selected, start timer
@@ -1219,8 +1187,8 @@ void UserStats() {
 		if (intLifes <= 0) { //if no life left and we're in a game
 			gameover = 1;		// game over flag
 
-			// to get back to the menu after game ended
-			if(intButtonE){
+			// to get back to the menu after single player game ended
+			if(intButtonE && flagGameMode == 1){
 
 				gameover = 0;
 				intLifes = 3;
@@ -1240,7 +1208,32 @@ void UserStats() {
 				intScoreSingle = 0;			// reset stats
 				intPassedTime = 0;
 				intPlayerLevel = 1;
+				coinRadiusHittable = 5;
+				flagGameMode = 0;
+
+			}else if(intButtonE && flagGameMode == 2){
+
+				gameover = 0;
+				intLifes = 3;
+
+				// refresh high score
+				if (intScoreMulti >= intScoreFirstMulti) {	//replace first
+					intScoreThirdMulti = intScoreSecondMulti;
+					intScoreSecondMulti = intScoreFirstMulti;
+					intScoreFirstMulti = intScoreMulti;
+				} else if (intScoreMulti >= intScoreSecondMulti) {//replace second
+					intScoreThirdMulti = intScoreSecondMulti;
+					intScoreSecondMulti = intScoreMulti;
+				} else if (intScoreMulti >= intScoreThirdSingle) {	//replace third
+					intScoreThirdMulti = intScoreMulti;
+				}
+
+				intScoreMulti = 0;			// reset stats
+				intPassedTime = 0;
+				intPlayerLevel = 1;
+				flagGameMode = 0;
 			}
+
 
 		}
 		vTaskDelay(100);
@@ -1249,15 +1242,17 @@ void UserStats() {
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 void AnimationTimerTask(){
-	TickType_t xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();
-
 	while (1) {
-
-		if(startBigAnimationTableThree == 1){
-
-			for (int i; i < 10; i++) {
-				vTaskDelayUntil(&xLastWakeTime, 500);
+		// big animation for table two
+		if(startBigAnimationTableTwo){
+			vTaskDelay(50);
+			coinRadiusHittable = coinRadiusHittable + 5;		// coin size on table increases
+			startBigAnimationTableTwo = 0;
+		}
+		// big animation for table three
+		if(startBigAnimationTableThree){
+			for (int i = 0; i < 9; i++) {
+				vTaskDelay(500);
 				if (animationCounterTableThree == 3) {
 					animationCounterTableThree = 1;
 				} else if (animationCounterTableThree == 1) {
@@ -1273,40 +1268,9 @@ void AnimationTimerTask(){
 	}
 
 }
-/* Static Task Example
-void CircleDisappearStatic(void * pvParameters){
-	configASSERT( ( uint32_t ) pvParameters == 1UL );
-	char str[100];
-	font_t font1; // Load font for ugfx
-	font1 = gdispOpenFont("DejaVuSans24*");
-
-
-	while (1) {
-		// Clear background
-		gdispClear(White);
-
-		//Counter Button A
-		sprintf(str, "Counter Button A: %d", intCountButtonA);
-		gdispDrawString(150, 20, str, font1, Black);
-		//Counter Button B
-		sprintf(str, "Counter Button B: %d", intCountButtonB);
-		gdispDrawString(150, 40, str, font1, Black);
-		//ControllableCounter
-		sprintf(str, "Controllable Counter: %d", intContrCounter);
-		gdispDrawString(150, 60, str, font1, Black);
-
-		// Wait for display to stop writing
-		xSemaphoreTake(ESPL_DisplayReady, portMAX_DELAY);
-		// swap buffers
-		ESPL_DrawLayer();
-
-		vTaskDelay(1000); //1000 ticks 1 Hz
-	}
-}
-
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-
+/*------------------------------------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------------------------------------*/
 /* Semaphore Task Example
 void countButtonA() {
