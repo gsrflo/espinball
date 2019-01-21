@@ -23,10 +23,11 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
+double velocityMultiplier = 1.5;
 double velocity[] = {0, 0}; 		// {120, 0}
 double position[] = {310, 150};
 double startposition[] = {310, 150};
-double gravity = 400; 				//standard 280, 120 for start?
+double gravity = 280; 				//standard 280, 120 for start?
 
 double collisionPoint[] = {0, 0};
 double collisionNormal[] = {0, 0};
@@ -55,8 +56,8 @@ void calculatePhysics(int deltaTime) {
 	velocity[1] += gravity * deltaSeconds;
 
 	//Update position based on velocity
-	volatile float totalDeltaX = (velocity[0] * deltaSeconds);
-	volatile float totalDeltaY = (velocity[1] * deltaSeconds);
+	volatile float totalDeltaX = (velocityMultiplier * velocity[0] * deltaSeconds);
+	volatile float totalDeltaY = (velocityMultiplier * velocity[1] * deltaSeconds);
 
 	volatile int16_t numberSteps = 0;
 	if (abs(totalDeltaX) > abs(totalDeltaY)) {

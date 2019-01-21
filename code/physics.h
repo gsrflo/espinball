@@ -41,6 +41,7 @@ typedef struct collision_poly {
 	uint16_t points[10];
 } collision_poly;
 
+extern double velocityMultiplier;
 extern double velocity[];
 extern double position[];
 extern double startposition[];
