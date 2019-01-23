@@ -91,7 +91,7 @@ int8_t intLifes = 3;
 int8_t gameover = 0;
 int8_t flagGameMode = 0;				// 1 for single player, 2 for multi player
 
-// debug variables
+// debug variables (blue: 0)
 int lastActivePlayer = 0;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -775,7 +775,7 @@ void checkStart(int coordStartAreaX) {
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
-void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordYTriggered, int coordY2) {
+void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordYTriggered, int coordY2, int id) {
 	if (coordY != coordYTriggered) {
 		for (int i = 0; i < 20; i++) {
 			double range = coordYTriggered - coordYIdle;
@@ -784,6 +784,9 @@ void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordY
 				position[1] = coordYTriggered - 10;
 				velocity[1] = -400;
 				velocity[0] = 100;
+				if (id != -1) {
+					lastActivePlayer = id;
+				}
 			}
 		}
 	}
@@ -806,7 +809,7 @@ int coordLeftLeverX2;
 int coordLeftLeverY2;
 
 
-int multiplayerMaster = FALSE;
+int multiplayerMaster = TRUE;
 
 void sendArmCommand(uint8_t high) {
 	UART_SendData(startByte);
@@ -975,9 +978,9 @@ void drawTask() {
 
 			//***INPUTS***
 			if (intButtonB) {
-				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,coordRightLeverY1Triggered, coordRightLeverY2);
+				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,coordRightLeverY1Triggered, coordRightLeverY2, -1);
 				if (intActTable == 3) {
-					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90, coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
+					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90, coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90, -1);
 				}
 				coordRightLeverY1 = coordRightLeverY1Triggered;
 			} else {
@@ -985,9 +988,9 @@ void drawTask() {
 			}
 
 			if (intButtonD) {
-				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle, coordLeftLeverY2Triggered, coordRightLeverY1);
+				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle, coordLeftLeverY2Triggered, coordRightLeverY1, -1);
 				if (intActTable == 3) {
-					checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90, coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
+					checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90, coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90, -1);
 				}
 				coordLeftLeverY2 = coordLeftLeverY2Triggered;
 			} else {
@@ -1025,9 +1028,9 @@ void drawTask() {
 				if (multiplayerMaster && coordRightLeverY1 != coordRightLeverY1Triggered) {
 					sendArmCommand(1);
 					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
-											coordRightLeverY1Triggered, coordRightLeverY2);
+											coordRightLeverY1Triggered, coordRightLeverY2, 1);
 					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
-											coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
+											coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90, 1);
 					coordRightLeverY1 = coordRightLeverY1Triggered;
 				} else if (!multiplayerMaster && coordLeftLeverY2 != coordLeftLeverY2Triggered) {
 					sendArmCommand(1);
@@ -1220,9 +1223,9 @@ void uartReceive() {
 			if (multiplayerMaster) {
 				if (input) {
 					checkLever(coordLeftLeverX2, coordLeftLeverX1, coordLeftLeverY2, coordLeftLeverY2Idle,
-											coordLeftLeverY2Triggered, coordRightLeverY1);
+											coordLeftLeverY2Triggered, coordRightLeverY1, 0);
 					checkLever(coordLeftLeverX2, coordLeftLeverX1, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
-											coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
+											coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90, 0);
 					coordLeftLeverY2 = coordLeftLeverY2Triggered;
 				} else {
 					coordLeftLeverY2 = coordLeftLeverY2Idle;
@@ -1299,9 +1302,11 @@ void UserActions(){
 			if (intDrawScreen != 6){
 				intScreenBeforePause = intDrawScreen;
 				intDrawScreen = 6;
+				sendPauseCommand(intScreenBeforePause);
 			}
 			else {
 				intDrawScreen = intScreenBeforePause;
+				sendStopPauseCommand(intScreenBeforePause);
 			}
 
 			vTaskDelay(500);
