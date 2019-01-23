@@ -27,6 +27,7 @@ TaskHandle_t	drawTaskHandle = NULL,
 				TaskControllerHandle = NULL,
 				UserStatsHandle = NULL,
 				UserActionsHandle = NULL,
+				uartReceiveHandle = NULL,
 				AnimationTimerTaskHandle = NULL,
 				BallStuckTaskHandle = NULL;
 
@@ -705,7 +706,7 @@ int main() {
 
 	xTaskCreate(TaskController, "TaskController", 1000, NULL, 9, &TaskControllerHandle);
 	xTaskCreate(UserStats, "UserStats", 1000, NULL, 7, &UserStatsHandle);
-	//xTaskCreate(uartReceive, "uartReceive", 1000, NULL, 9, &uartReceiveHandle);
+	xTaskCreate(uartReceive, "uartReceive", 1000, NULL, 8, &uartReceiveHandle);
 
 	// interface tasks
 	xTaskCreate(checkJoystick, "checkJoystick", 1000, NULL, 6, &checkJoystickHandle);
@@ -789,6 +790,82 @@ void checkLever(int coordX1, int coordX2, int coordY, int coordYIdle, int coordY
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
+//Moving parts
+int coordRightLeverY1Triggered;
+int coordRightLeverY1Idle;
+float coordRightLeverX1;
+int coordRightLeverY1;
+int coordRightLeverX2;
+int coordRightLeverY2;
+
+int coordLeftLeverY2Triggered;
+int coordLeftLeverY2Idle;
+int coordLeftLeverX1;
+int coordLeftLeverY1;
+int coordLeftLeverX2;
+int coordLeftLeverY2;
+
+
+int multiplayerMaster = FALSE;
+
+void sendArmCommand(uint8_t high) {
+	UART_SendData(startByte);
+	UART_SendData(1);
+	UART_SendData(high);
+	UART_SendData(stopByte);
+}
+
+void sendBallCommand() {
+	UART_SendData(startByte);
+	UART_SendData(2);
+	UART_SendData(((uint16_t)position[0]) & 0xFF);
+	UART_SendData((((uint16_t)position[0]) >> 8) & 0xFF);
+	UART_SendData(((uint16_t)position[1]) & 0xFF);
+	UART_SendData((((uint16_t)position[1]) >> 8) & 0xFF);
+	UART_SendData(stopByte);
+}
+
+int statsCounter = 0;
+
+void sendStatsCommand() {
+	if (statsCounter++ > 5) {
+		UART_SendData(startByte);
+		UART_SendData(3);
+		UART_SendData(((uint16_t)intScoreMulti) & 0xFF);
+		UART_SendData((((uint16_t)intScoreMulti) >> 8) & 0xFF);
+		UART_SendData(intPlayerLevel);
+		UART_SendData(stopByte);
+		statsCounter = 0;
+	}
+}
+
+void sendPauseCommand(uint8_t screenBefore) {
+	UART_SendData(startByte);
+	UART_SendData(4);
+	UART_SendData(screenBefore);
+	UART_SendData(stopByte);
+}
+
+void sendStopPauseCommand(uint8_t screenBefore) {
+	UART_SendData(startByte);
+	UART_SendData(5);
+	UART_SendData(screenBefore);
+	UART_SendData(stopByte);
+}
+
+int heartbeatCounter = 0;
+volatile TickType_t lastHeartbeat = 0;
+int timeoutPause = 0;
+
+void sendHeartbeat() {
+	if (heartbeatCounter++ > 4) {
+		UART_SendData(startByte);
+		UART_SendData(6);
+		UART_SendData(stopByte);
+		heartbeatCounter = 0;
+	}
+}
+
 void drawTask() {
 
 	char str[100]; // buffer for messages to draw to display
@@ -823,19 +900,19 @@ void drawTask() {
 
 
 	//Moving parts
-	int coordRightLeverY1Triggered = 170;
-	int coordRightLeverY1Idle = 210;
-	float coordRightLeverX1 = coordGameAreaX2 / 2 + 20; //displaySizeX/2 + 10;
-	int coordRightLeverY1 = 220; //coordRightLeverY1Idle;
-	int coordRightLeverX2 = coordGameAreaX2 / 2 + 70; //displaySizeX/2 + 60;
-	int coordRightLeverY2 = 200;
+	coordRightLeverY1Triggered = 170;
+	coordRightLeverY1Idle = 210;
+	coordRightLeverX1 = coordGameAreaX2 / 2 + 20; //displaySizeX/2 + 10;
+	coordRightLeverY1 = coordRightLeverY1Idle;
+	coordRightLeverX2 = coordGameAreaX2 / 2 + 70; //displaySizeX/2 + 60;
+	coordRightLeverY2 = 200;
 
-	int coordLeftLeverY2Triggered = 170;
-	int coordLeftLeverY2Idle = 210;
-	int coordLeftLeverX1 = coordGameAreaX2 / 2 - 70;
-	int coordLeftLeverY1 = 200;
-	int coordLeftLeverX2 = coordGameAreaX2 / 2 - 20;
-	int coordLeftLeverY2 = 220; //coordLeftLeverY2Idle;
+	coordLeftLeverY2Triggered = 170;
+	coordLeftLeverY2Idle = 210;
+	coordLeftLeverX1 = coordGameAreaX2 / 2 - 70;
+	coordLeftLeverY1 = 200;
+	coordLeftLeverX2 = coordGameAreaX2 / 2 - 20;
+	coordLeftLeverY2 = coordLeftLeverY2Idle;
 
 	// Start endless loop
 	while (TRUE) {
@@ -933,28 +1010,44 @@ void drawTask() {
 			drawStats(coordGameAreaX1, coordGameAreaX2, coordGameAreaY1, coordGameAreaY2);
 			checkStart(coordStartAreaX);
 			checkCloseStartArea(coordStartAreaX);
-			calculatePhysics(xWakeTime - xLastWakeTime);
+			if (multiplayerMaster) {
+				calculatePhysics(xWakeTime - xLastWakeTime);
+
+				sendBallCommand();
+				sendStatsCommand();
+			} else {
+				sendHeartbeat();
+			}
 			drawBall();
 
-
 			//***INPUTS***
-			if (intButtonB) {
-				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
-						coordRightLeverY1Triggered, coordRightLeverY2);
-				checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
-						coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
-				coordRightLeverY1 = coordRightLeverY1Triggered;
+			if (intButtonB || intButtonD) {
+				if (multiplayerMaster && coordRightLeverY1 != coordRightLeverY1Triggered) {
+					sendArmCommand(1);
+					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1, coordRightLeverY1Idle,
+											coordRightLeverY1Triggered, coordRightLeverY2);
+					checkLever(coordRightLeverX1, coordRightLeverX2, coordRightLeverY1 - 90, coordRightLeverY1Idle - 90,
+											coordRightLeverY1Triggered - 90, coordRightLeverY2 - 90);
+					coordRightLeverY1 = coordRightLeverY1Triggered;
+				} else if (!multiplayerMaster && coordLeftLeverY2 != coordLeftLeverY2Triggered) {
+					sendArmCommand(1);
+					coordLeftLeverY2 = coordLeftLeverY2Triggered;
+				}
 			} else {
-				coordRightLeverY1 = coordRightLeverY1Idle;
+				if (multiplayerMaster && coordRightLeverY1 != coordRightLeverY1Idle) {
+					sendArmCommand(0);
+					coordRightLeverY1 = coordRightLeverY1Idle;
+				} else if (!multiplayerMaster && coordLeftLeverY2 != coordLeftLeverY2Idle) {
+					sendArmCommand(0);
+					coordLeftLeverY2 = coordLeftLeverY2Idle;
+				}
 			}
-			if (intButtonD) {
-				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2, coordLeftLeverY2Idle,
-						coordLeftLeverY2Triggered, coordRightLeverY1);
-				checkLever(coordLeftLeverX1, coordLeftLeverX2, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
-						coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
-				coordLeftLeverY2 = coordLeftLeverY2Triggered;
-			} else {
-				coordLeftLeverY2 = coordLeftLeverY2Idle;
+
+			int diff = xWakeTime - lastHeartbeat;
+			if (diff > 200) {
+				timeoutPause = 1;
+				intScreenBeforePause = intDrawScreen;
+				intDrawScreen = 6;
 			}
 
 			break;
@@ -990,6 +1083,12 @@ void drawTask() {
 			gdispClear(Gray);
 			sprintf(str, "PAUSE");
 			gdispDrawString(coordGameAreaX2 / 2 - 10, coordGameAreaY2 / 2 - 10,	str, font1, Red);
+			sendHeartbeat();
+			int pauseDiff = xWakeTime - lastHeartbeat;
+			if (timeoutPause == 1 && pauseDiff < 200) {
+				timeoutPause = 0;
+				intDrawScreen = intScreenBeforePause;
+			}
 			break;
 		default:
 			break;
@@ -1104,63 +1203,81 @@ void checkButton() {
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
-/**
- * Example function to send data over UART
- *
- * Sends coordinates of a given position via UART.
- * Structure of a package:
- *  8 bit start byte
- *  8 bit x-coordinate
- *  8 bit y-coordinate
- *  8 bit checksum (= x-coord XOR y-coord)
- *  8 bit stop byte
- */
-void sendPosition(struct coord position) {
-	const uint8_t checksum = position.x ^ position.y;
-
-	UART_SendData(startByte);
-	UART_SendData(position.x);
-	UART_SendData(position.y);
-	UART_SendData(checksum);
-	UART_SendData(stopByte);
-}
-/*------------------------------------------------------------------------------------------------------------------------------*/
-/**
- * Example how to receive data over UART (see protocol above)
- */
 void uartReceive() {
 	char input;
 	uint8_t pos = 0;
-	char checksum;
-	char buffer[5]; // Start byte,4* line byte, checksum (all xor), End byte
-	struct coord position = { 0, 0 };
+	uint8_t command = 0;
+	char buffer[12];
+	TickType_t xWakeTime;
+
 	while (TRUE) {
 		// wait for data in queue
 		xQueueReceive(ESPL_RxQueue, &input, portMAX_DELAY);
+		xWakeTime = xTaskGetTickCount();
 
-		// decode package by buffer position
-		switch (pos) {
-		// start byte
-		case 0:
-			if (input != startByte)
-				break;
-		case 1:
-		case 2:
-		case 3:
-			// read received data in buffer
-			buffer[pos] = input;
-			pos++;
-			break;
-		case 4:
-			// Check if package is corrupted
-			checksum = buffer[1] ^ buffer[2];
-			if (input == stopByte || checksum == buffer[3]) {
-				// pass position to Joystick Queue
-				position.x = buffer[1];
-				position.y = buffer[2];
-				xQueueSend(JoystickQueue, &position, 100);
+		lastHeartbeat = xWakeTime;
+		if (command == 1) {
+			if (multiplayerMaster) {
+				if (input) {
+					checkLever(coordLeftLeverX2, coordLeftLeverX1, coordLeftLeverY2, coordLeftLeverY2Idle,
+											coordLeftLeverY2Triggered, coordRightLeverY1);
+					checkLever(coordLeftLeverX2, coordLeftLeverX1, coordLeftLeverY2 - 90, coordLeftLeverY2Idle - 90,
+											coordLeftLeverY2Triggered - 90, coordRightLeverY1 - 90);
+					coordLeftLeverY2 = coordLeftLeverY2Triggered;
+				} else {
+					coordLeftLeverY2 = coordLeftLeverY2Idle;
+				}
+			} else {
+				if (input) {
+					coordRightLeverY1 = coordRightLeverY1Triggered;
+				} else {
+					coordRightLeverY1 = coordRightLeverY1Idle;
+				}
 			}
 			pos = 0;
+			command = 0;
+		} else if (command == 2) {
+			if (pos < 6) {
+				buffer[pos++ - 2] = input;
+			} else {
+				position[0] = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+				position[1] = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
+				pos = 0;
+				command = 0;
+			}
+
+		} else if (command == 3) {
+			if (pos < 5) {
+				buffer[pos++ - 2] = input;
+			} else {
+				intScoreMulti = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+				intPlayerLevel = buffer[2];
+				pos = 0;
+				command = 0;
+			}
+		} else if (command == 4) {
+			intScreenBeforePause = input;
+			intDrawScreen = 6;
+			pos = 0;
+			command = 0;
+		} else if (command == 5) {
+			intDrawScreen = input;
+			pos = 0;
+			command = 0;
+		} else if (command == 6) {
+			pos = 0;
+			command = 0;
+		} else if (pos == 1) {
+			command = input;
+			pos++;
+		} else if (command == 0 && input == startByte) {
+			pos = 1;
+		} else {
+			pos++;
+			if (input == stopByte || pos > 10) {
+				pos = 0;
+				command = 0;
+			}
 		}
 	}
 }
