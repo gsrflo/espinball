@@ -28,8 +28,19 @@
 #define OBJECT_BIG_BONUS_PLAYER_BLUE 10
 #define OBJECT_BIG_BONUS_PLAYER_GREEN 11
 
+/**
+ * Calculates the distance between two vectors.
+ */
 #define DIST(x1, y1, x2, y2) sqrt(((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2)))
+
+/**
+ * Calculates the length of a vector.
+ */
 #define LEN(v) sqrt(v[0] * v[0] + v[1] * v[1])
+
+/**
+ * Calculates the dot product of a vector.
+ */
 #define DOT_PRODUCT(v1, v2) v1[0] * v2[0] + v1[1] * v2[1]
 
 typedef struct collision_circle {

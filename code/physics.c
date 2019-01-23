@@ -20,23 +20,39 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
+// Speed multiplier
 double velocityMultiplier = 1;
+
+// Ball speed
 double velocity[] = {0, 0}; 		// {120, 0}
+
+// Ball position
 double position[] = {310, 150};
+
+// Ball start position
 double startposition[] = {310, 150};
+
+//World gravity
 double gravity = 280; 				//standard 280, 120 for start?
 
+// Location of last collision
 double collisionPoint[] = {0, 0};
+
+// Normal of last collision surface
 double collisionNormal[] = {0, 0};
 
+// Stores all collision circles
 collision_circle collisionCircles[80] = {};
 uint8_t collisionCirclesCount = 0;
 
+//Stores all collision polygons
 collision_poly collisionPolygons[40] = {};
 uint8_t collisionPolygonsCount = 0;
 
-double collisionSpeedMultiplier = 0.8;
 
+/*
+ * Round a double towards zero.
+ */
 int absFloor(double num) {
 	if (num > 0) {
 		return floor(num);
@@ -45,7 +61,12 @@ int absFloor(double num) {
 	}
 }
 
+// Time since calculatePhysics was called the last time
 int deltaTimeStore = 0;
+
+/*
+ * Calculates all physics variables and moves the ball accordingly.
+ */
 void calculatePhysics(int deltaTime) {
 	double deltaSeconds = ((double) (deltaTime + deltaTimeStore)) / 1000.0;
 
@@ -74,10 +95,14 @@ void calculatePhysics(int deltaTime) {
 	double deltaYStep = totalDeltaY / numberSteps;
 	volatile int16_t dx = 0;
 	volatile int16_t dy = 0;
+
+	// Move the ball one step in the desired direction
 	for (uint16_t steps = 1; steps <= numberSteps; steps++) {
 		volatile int16_t newDx = absFloor(deltaXStep * steps);
 		volatile int16_t newDy = absFloor(deltaYStep * steps);
 		int objId = checkCollision(position[0] + newDx, position[1] + newDy);
+
+		// Ball collided
 		if (objId != OBJECT_NONE) {
 			position[0] += dx;
 			position[1] += dy;
@@ -98,13 +123,18 @@ void calculatePhysics(int deltaTime) {
 	position[1] += absFloor(deltaYStep * numberSteps);
 }
 
+/**
+ * Checks if the ball collides at the specified position
+ */
 int checkCollision(uint16_t positionX, uint16_t positionY) {
+	// Checks for collisions with circles
 	for (int i = 0; i < collisionCirclesCount; i++) {
 		if (checkCircleCollision(positionX, positionY, &collisionCircles[i])) {
 			return collisionCircles[i].id;
 		}
 	}
 
+	// Checks for collisions with polygons
 	for (int i = 0; i < collisionPolygonsCount; i++) {
 		if (checkPolygonCollision(positionX, positionY, &collisionPolygons[i])) {
 			return collisionPolygons[i].id;
@@ -114,6 +144,9 @@ int checkCollision(uint16_t positionX, uint16_t positionY) {
 	return OBJECT_NONE;
 }
 
+/**
+ * Checks if the ball collides with the given circle at the given location. Returns OBJECT_NONE if it doesn't
+ */
 uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_circle *circle) {
 	if (abs(circle->x - positionX) <= circle->radius && abs(circle->y - positionY) <= circle->radius) {
 		collisionNormal[0] = -velocity[0];
@@ -132,6 +165,9 @@ uint8_t checkCircleCollision(uint16_t positionX, uint16_t positionY, collision_c
 	return FALSE;
 }
 
+/**
+ * Checks if the ball collides with the given polygon at the given location. Returns OBJECT_NONE if it doesn't
+ */
 uint8_t checkPolygonCollision(volatile uint16_t positionX, volatile uint16_t positionY, collision_poly *poly) {
 	for (uint8_t lineIndex = 0; lineIndex < poly->pointCount - 1; lineIndex++) {
 		uint16_t *p1;
@@ -163,6 +199,9 @@ uint8_t checkPolygonCollision(volatile uint16_t positionX, volatile uint16_t pos
 	return FALSE;
 }
 
+/**
+ * Checks if the ball collides with the given line at the given position.
+ */
 uint8_t checkLineCollision(volatile uint16_t positionX, volatile uint16_t positionY, volatile uint16_t x1, volatile uint16_t y1, volatile uint16_t x2, volatile uint16_t y2) {
 	//Get length of the line
 	volatile double lineLen = DIST(x1, y1, x2, y2);
@@ -202,10 +241,16 @@ uint8_t checkLineCollision(volatile uint16_t positionX, volatile uint16_t positi
 	}
 }
 
+/**
+ * Draws the ball.
+ */
 void drawBall() {
 	gdispFillCircle(position[0], position[1], BALL_RADIUS, Red);
 }
 
+/**
+ * Registers a new circle for collision.
+ */
 void registerCollisionCircle(uint16_t x, uint16_t y, uint8_t radius, uint8_t id) {
 	collision_circle *circle = &collisionCircles[collisionCirclesCount++];
 	circle->id = id;
@@ -214,6 +259,9 @@ void registerCollisionCircle(uint16_t x, uint16_t y, uint8_t radius, uint8_t id)
 	circle->radius = radius;
 }
 
+/**
+ * Registers a new line for collision.
+ */
 void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
 	poly->id = id;
@@ -224,6 +272,9 @@ void registerCollisionLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, u
 	poly->points[3] = y2;
 }
 
+/**
+ * Registers a new rectangle for collision.
+ */
 void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
 	poly->id = id;
@@ -238,6 +289,9 @@ void registerCollisionRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t
 	poly->points[7] = y + height;
 }
 
+/**
+ * Registers a new polygon for collision.
+ */
 void registerCollisionPolygon(point *points, uint8_t pointCount, uint8_t id) {
 	collision_poly *poly = &collisionPolygons[collisionPolygonsCount++];
 	poly->id = id;
@@ -249,6 +303,9 @@ void registerCollisionPolygon(point *points, uint8_t pointCount, uint8_t id) {
 	}
 }
 
+/**
+ * Removes all collision objects.
+ */
 void resetCollisionObjects() {
 	collisionCirclesCount = 0;
 	collisionPolygonsCount = 0;
