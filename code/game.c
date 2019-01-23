@@ -91,21 +91,30 @@ int8_t intLifes = 3;
 int8_t gameover = 0;
 int8_t flagGameMode = 0;				// 1 for single player, 2 for multi player
 
-// debug variables (blue: 0)
+// for multi player (blue: 0 ; green: 1)
 int lastActivePlayer = 0;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // FUNCTIONS
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * fills circle & registers collision object with id
+ **/
 void fillPinballCircleWithId(uint16_t x, uint16_t y, uint8_t radius, color_t color, uint16_t id){
 	gdispFillCircle(x, y, radius, color);
 	registerCollisionCircle(x, y, radius, id);
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * fills circle, registers collision object with standard OBJECT_ENV id
+ **/
 void fillPinballCircle(uint16_t x, uint16_t y, uint8_t radius, color_t color) {
 	fillPinballCircleWithId(x, y, radius, color, OBJECT_ENV);
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * draws thick line (rounded), registers collision object with standard OBJECT_ENV id
+ **/
 void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
 	registerCollisionLine(x1, y1, x2, y2, OBJECT_ENV);
@@ -119,6 +128,9 @@ void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * draws thick line, registers collision object with id
+ **/
 void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width, uint16_t id){
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
 	registerCollisionLine(x1, y1, x2, y2, id);
@@ -132,10 +144,16 @@ void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t 
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * draws thick line, registers collision object with standard OBJECT_ENV id
+ **/
 void drawPinballThickLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, color_t color, uint16_t width){
 	drawPinballThickLineWithId(x1, y1, x2, y2, color, width, OBJECT_ENV);
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * draws those things, which are necessary for each table
+ **/
 void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
@@ -182,13 +200,19 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	drawPinballThickLine(coordStartAreaX + 14, 200 + intGainStartLever, coordStartAreaX + 14, coordGameAreaY2, Black, 1);
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * checks if ball left start area
+ **/
 void checkCloseStartArea(int coordStartAreaX){
 	if (position[0] < coordStartAreaX - 10 || intStartAreaClosed == 1) {
 		drawPinballThickLine(coordStartAreaX, 60, coordStartAreaX, 90, Black, 5); //upper lines
 		intStartAreaClosed = 1;
 	}
 }
-/*------------------------------------------------------------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------------------------------------------------------*
+ * //**
+ * checks if ball had a collision with an object
+ **/
 void checkCollisionObject(uint8_t id){
 
 	if(intDrawScreen == 3) {			// single player score
@@ -319,6 +343,9 @@ void checkCollisionObject(uint8_t id){
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // single player tables functions
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for the additional lever in single player
+ **/
 void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
 		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
 
@@ -333,6 +360,9 @@ void drawAdditionalLeverSP(int coordRightLeverX1, int coordRightLeverY1, int coo
 
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for table three
+ **/
 void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY, int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
 	// red holes to change table
@@ -362,6 +392,9 @@ void drawTableThree(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX,
 
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * animation function for table three
+ **/
 void bigAnimationTableThree(int coordGameAreaX2, int coordGameAreaY2, int coinRadius){
 	if (animationCounterTableThree == 1) {
 		gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60,coinRadius, colorCoinsTableThree);
@@ -408,6 +441,9 @@ void bigAnimationTableThree(int coordGameAreaX2, int coordGameAreaY2, int coinRa
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for table one
+ **/
 void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -441,6 +477,9 @@ void drawTableOne(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 	bigAnimationTableOne(coordHoleLeftX, coordHoleRightX);			// draws boundaries, which disappear after hitting green bumper
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * animation function for table three
+ **/
 void bigAnimationTableOne(int coordHoleLeftX, int coordHoleRightX){
 	if(startBigAnimationTableOne == 0){
 		// closed holes for table changing
@@ -456,6 +495,9 @@ void bigAnimationTableOne(int coordHoleLeftX, int coordHoleRightX){
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for table two
+ **/
 void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -503,6 +545,9 @@ void drawTableTwo(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, i
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // multi player table functions
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for the additional lever in multi player
+ **/
 void drawAdditionalLeverMP(int coordRightLeverX1, int coordRightLeverY1, int coordRightLeverX2, int coordRightLeverY2, int coordLeftLeverX1,
 		int coordLeftLeverY1, int coordLeftLeverX2, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
 
@@ -517,6 +562,9 @@ void drawAdditionalLeverMP(int coordRightLeverX1, int coordRightLeverY1, int coo
 
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for multi player table
+ **/
 void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleRightX, int coordHoleRightY,
 		int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2, int coinRadius){
 
@@ -560,6 +608,9 @@ void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleR
 
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for the essentials in multi player mode
+ **/
 void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int coordGameAreaY2, int coordGameAreaX2,
 		int coordRightLeverX1, int coordRightLeverX2, int coordRightLeverY1, int coordRightLeverY2, int coordLeftLeverX1, int coordLeftLeverX2,
 		int coordLeftLeverY1, int coordLeftLeverY2, int coordRightLeverY1Idle, int coordLeftLeverY2Idle, int thickLever){
@@ -604,6 +655,9 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // main draw functions
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function menu
+ **/
 void drawMenu(){
 	char str[100]; // buffer for messages to draw to display
 
@@ -664,6 +718,9 @@ void drawMenu(){
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+/**
+ * drawing function for stats
+ **/
 void drawStats(int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, int coordGameAreaY2){
 	char str[100]; // buffer for messages to draw to display
 
@@ -996,7 +1053,6 @@ void drawTask() {
 			} else {
 				coordLeftLeverY2 = coordLeftLeverY2Idle;
 			}
-
 			break;
 
 
@@ -1487,28 +1543,6 @@ void BallStuckTask(){
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------------------------------------*/
-/* Semaphore Task Example
-void countButtonA() {
-	/// Attempt to create a semaphore.
-	CountButtonASemaphore = xSemaphoreCreateBinary();
-
-	while (TRUE) {
-		if (CountButtonASemaphore != NULL) {
-			// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.
-			if (xSemaphoreTake(CountButtonASemaphore, 10) == pdTRUE) {
-				//We were able to obtain the semaphore and can now access the shared resource.
-				intCountButtonA++;
-				//Pressing Button A releases another time the semaphore
-			} else {
-				//We could not obtain the semaphore and can therefore not access the shared resource safely.
-			}
-		}
-
-	}
-}
-/*------------------------------------------------------------------------------------------------------------------------------*/
-
-
 
 /*
  *  Hook definitions needed for FreeRTOS to function.
