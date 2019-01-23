@@ -90,6 +90,8 @@ int8_t intLifes = 3;
 int8_t gameover = 0;
 int8_t flagGameMode = 0;				// 1 for single player, 2 for multi player
 
+// debug variables
+int lastActivePlayer = 0;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // FUNCTIONS
@@ -107,12 +109,12 @@ void drawPinballThickLineRound(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, TRUE);
 	registerCollisionLine(x1, y1, x2, y2, OBJECT_ENV);
 
-	registerCollisionCircle(x1, y1, 3, OBJECT_ENV);
-	registerCollisionCircle(x2, y2, 3, OBJECT_ENV);
+	registerCollisionCircle(x1, y1, 2, OBJECT_ENV);
+	registerCollisionCircle(x2, y2, 2, OBJECT_ENV);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 3, Red);
-		gdispFillCircle(x2, y2, 3, Red);
+		gdispFillCircle(x1, y1, 2, Red);
+		gdispFillCircle(x2, y2, 2, Red);
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -120,12 +122,12 @@ void drawPinballThickLineWithId(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t 
 	gdispDrawThickLine(x1, y1, x2, y2, color, width, FALSE);
 	registerCollisionLine(x1, y1, x2, y2, id);
 
-	registerCollisionCircle(x1, y1, 3, id);
-	registerCollisionCircle(x2, y2, 3, id);
+	registerCollisionCircle(x1, y1, 2, id);
+	registerCollisionCircle(x2, y2, 2, id);
 
 	if (DEBUG) {
-		gdispFillCircle(x1, y1, 3, Red);
-		gdispFillCircle(x2, y2, 3, Red);
+		gdispFillCircle(x1, y1, 2, Red);
+		gdispFillCircle(x2, y2, 2, Red);
 	}
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -150,6 +152,13 @@ void drawTableEssentials(int coordStartAreaX, int startAreaSize, int coordGameAr
 	// obstacles vertical
 	drawPinballThickLineRound(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever);
+
+	registerCollisionCircle(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, OBJECT_ENV); //additional circle to avoid stuck ball
+	registerCollisionCircle(coordLeftLeverX1 - 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, OBJECT_ENV);  //additional circle to avoid stuck ball
+	if (DEBUG) {
+		gdispFillCircle(coordRightLeverX2 + 50,	coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, Red);
+		gdispFillCircle(coordLeftLeverX1 - 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, Red);
+	}
 
 	// boundaries
 	drawPinballThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5);
@@ -270,15 +279,37 @@ void checkCollisionObject(uint8_t id){
 		}
 	} else if(intDrawScreen == 4){		// multi player score
 		switch (id) {
-		case 0:
+		case 6:				// normal player blue
+			if (lastActivePlayer == 0) {
+				intScoreMulti = intScoreMulti + 100;
+			}
 			break;
-		case 1:				// normal
+		case 7:				// normal player green
+			if (lastActivePlayer == 1) {
+				intScoreMulti = intScoreMulti + 100;
+			}
 			break;
-		case 2:				// small bonus
-			//start animation 1
+		case 8:				// small bonus player blue
+			if (lastActivePlayer == 0) {
+				intScoreMulti = intScoreMulti + 200;
+			}
 			break;
-		case 3:				// big bonus
-			//start animation 2
+		case 9:				// small bonus player green
+			if (lastActivePlayer == 1) {
+				intScoreMulti = intScoreMulti + 200;
+			}
+			break;
+		case 10:			// big bonus player blue
+			if (lastActivePlayer == 0) {
+				intScoreMulti = intScoreMulti + 300;
+			}
+			break;
+		case 11:			// big bonus player green
+			if (lastActivePlayer == 1) {
+				intScoreMulti = intScoreMulti + 300;
+			}
+			break;
+		default:
 			break;
 		}
 	}
@@ -490,23 +521,22 @@ void drawTableMultiPlayer(int coordHoleLeftX, int coordHoleLeftY, int coordHoleR
 
 	drawPinballThickLineRound(coordGameAreaX2 / 2 - 80, 50, coordGameAreaX2 / 2, 10, Black, 5);		// left side big bowl
 	drawPinballThickLineRound(coordGameAreaX2 / 2, 10, coordGameAreaX2 / 2 + 80, 50, Black, 5);		// right side big bowl
-	// bumper
-	drawPinballThickLine(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2);// left bumper
-	drawPinballThickLine(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2);// right bumper
+	// bowl bumper
+	drawPinballThickLineWithId(coordGameAreaX2 / 2 - 80 + 2, 50,coordGameAreaX2 / 2 + 2, 10, Blue, 2, OBJECT_NORMAL_PLAYER_BLUE);// left bumper
+	drawPinballThickLineWithId(coordGameAreaX2 / 2 - 2, 10, coordGameAreaX2 / 2 + 80 - 2, 50, Green, 2, OBJECT_NORMAL_PLAYER_GREEN);// right bumper
+
 	// upper bumper
 	drawPinballThickLineRound(coordGameAreaX1, 40, coordGameAreaX1 + 15,60, Black, 5); 		// left upper bumper
-	drawPinballThickLine(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Green, 2);
+	drawPinballThickLineWithId(coordGameAreaX1 + 2, 40,coordGameAreaX1 + 15 + 2, 60, Green, 2, OBJECT_SMALL_BONUS_PLAYER_GREEN);
 	drawPinballThickLineRound(coordGameAreaX2 - 15, 60, coordGameAreaX2,40, Black, 5);		// right upper bumper
-	drawPinballThickLine(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2);
+	drawPinballThickLineWithId(coordGameAreaX2 - 15 - 2, 60, coordGameAreaX2 - 2, 40, Blue, 2, OBJECT_SMALL_BONUS_PLAYER_BLUE);
 
 	// round bumper
-	fillPinballCircle(coordGameAreaX2 / 2 - 80 , 20, 10, Blue);		//left bumper
+	fillPinballCircleWithId(coordGameAreaX2 / 2 - 80 , 20, 10, Blue, OBJECT_BIG_BONUS_PLAYER_BLUE);		//left bumper
 	gdispDrawCircle(coordGameAreaX2 / 2 - 80, 20, 10, Black);
 
-	fillPinballCircle(coordGameAreaX2 / 2 + 80, 20, 10, Green);		//right bumper
+	fillPinballCircleWithId(coordGameAreaX2 / 2 + 80, 20, 10, Green, OBJECT_BIG_BONUS_PLAYER_GREEN);		//right bumper
 	gdispDrawCircle(coordGameAreaX2 / 2 + 80, 20, 10, Black);
-
-	fillPinballCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 30, 10, Black);		//black middle bumper
 
 	// coins
 	gdispFillCircle(coordGameAreaX2 / 2, coordGameAreaY2 / 2 + 60, coinRadius, Yellow);
@@ -544,7 +574,12 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 	// obstacles vertical
 	drawPinballThickLineRound(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2) - 50, Black, thickLever);
 	drawPinballThickLineRound(coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1), coordLeftLeverX1 - 50, coordLeftLeverY1 - (coordLeftLeverY2Idle - coordLeftLeverY1) - 50, Black, thickLever);
-
+	registerCollisionCircle(coordRightLeverX2 + 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, OBJECT_ENV); //additional circle to avoid stuck ball
+	registerCollisionCircle(coordLeftLeverX1 - 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, OBJECT_ENV);  //additional circle to avoid stuck ball
+		if (DEBUG) {
+			gdispFillCircle(coordRightLeverX2 + 50,	coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, Red);
+			gdispFillCircle(coordLeftLeverX1 - 50, coordRightLeverY2 - (coordRightLeverY1Idle - coordRightLeverY2), 5, Red);
+		}
 	// boundaries
 	drawPinballThickLine(coordRightLeverX1 + 10, coordGameAreaY2, coordGameAreaX2, coordRightLeverY2 + 10, Black, 5);
 	drawPinballThickLine(0, coordLeftLeverY1 + 10, coordLeftLeverX2 - 10, coordGameAreaY2, Black, 5);
@@ -568,7 +603,6 @@ void drawTableMultiPlayerEssentials(int coordStartAreaX, int startAreaSize, int 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 // main draw functions
 /*------------------------------------------------------------------------------------------------------------------------------*/
-
 void drawMenu(){
 	char str[100]; // buffer for messages to draw to display
 
@@ -639,14 +673,21 @@ void drawStats(int coordGameAreaX1, int coordGameAreaX2, int coordGameAreaY1, in
 	//***STATS***
 	sprintf(str, "LEVEL: %d", intPlayerLevel);
 	gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 5, str, font3,Black);
-	sprintf(str, "SCORE: %d", intScoreSingle);
-	gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 20, str, font3,Black);
+
 	sprintf(str, "SEC: %d", intPassedTime);
 	gdispDrawString(coordGameAreaX2 - 60, coordGameAreaY2 - 10, str, font3,Black);
 	sprintf(str, "FPS: %d", intFPS);
 	gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY2 - 10, str, font3,Black);
 	sprintf(str, "LIFES: %d", intLifes);
 	gdispDrawString(coordGameAreaX2 - 55, coordGameAreaY1 + 10, str, font3,Black);
+
+	if(flagGameMode == 1){					// single player flag
+		sprintf(str, "SCORE: %d", intScoreSingle);
+		gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 20, str, font3,Black);
+	}else if (flagGameMode ==2){			// multi player flag
+		sprintf(str, "SCORE: %d", intScoreMulti);
+		gdispDrawString(coordGameAreaX1 + 5, coordGameAreaY1 + 20, str, font3,Black);
+	}
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -671,10 +712,10 @@ int main() {
 	xTaskCreate(checkButton, "checkButton", 1000, NULL, 6, &checkButtonHandle);
 	xTaskCreate(UserActions, "UserActions", 1000, NULL, 7, &UserActionsHandle);
 	// drawing tasks
-	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
+	xTaskCreate(drawTask, "drawTask", 1000, NULL, 8, &drawTaskHandle);
 	// animation tasks
 	xTaskCreate(AnimationTimerTask, "AnimationTimerTask", 1000, NULL, 3, &AnimationTimerTaskHandle);
-	xTaskCreate(BallStuckTask, "BallStuckTask", 1000, NULL, 4,  &BallStuckTaskHandle);
+	xTaskCreate(BallStuckTask, "BallStuckTask", 1000, NULL, 5,  &BallStuckTaskHandle);
 
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
@@ -1059,7 +1100,6 @@ void checkButton() {
 			FlagButtonK = 0;
 		}
 
-		xLastWakeTime = xTaskGetTickCount();
 	}
 }
 
@@ -1169,9 +1209,19 @@ void UserStats() {
 			velocityMultiplier = 2;				// increasing ball speed
 		}
 
-		if (intDrawScreen == 3 || intDrawScreen == 4 || gameover != 1) { //if single player or multi player selected, start timer
+		// time
+		vTaskDelayUntil(&xLastWakeTime, 1000);
+		if ((intDrawScreen == 3 || intDrawScreen == 4) && gameover != 1) { //if single player or multi player selected, start timer
 			intPassedTime++;
-			vTaskDelayUntil(&xLastWakeTime, 1000);
+		}
+
+		// reset ball position after switching to menu
+		if (intDrawScreen != 3 && intDrawScreen != 4 && intDrawScreen != 6){
+			position[0] = 310; 		// start position x
+			position[1] = 150;		// start position y
+			velocity[0] = 0;		// start velocity x
+			velocity[1] = 0;		// start velocity y
+			intStartAreaClosed = 0;
 		}
 
 		// life decreasing
@@ -1213,6 +1263,9 @@ void UserStats() {
 				coinRadiusHittable = 5;
 				flagGameMode = 0;
 				velocityMultiplier = 1;
+				startBigAnimationTableOne = 0;
+				startBigAnimationTableTwo = 0;
+				startBigAnimationTableThree = 0;
 
 			}else if(intButtonE && flagGameMode == 2){
 
@@ -1240,7 +1293,6 @@ void UserStats() {
 
 
 		}
-		vTaskDelay(100);
 	}
 }
 
@@ -1278,19 +1330,28 @@ void BallStuckTask(){
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 	double velocityOld[] = {0, 0};
-	double positionOld[] = {0, 0};
+	double positionOld[] = {310, 150};
 
 	while (TRUE) {
 		//vTaskDelayUntil(&xLastWakeTime, 100);
 
-		//if no velocity, no lever triggered, and position doesn't change
-		if (positionOld[0] == position[0] && positionOld[1] == position[1] && velocityOld[0] == 0 && velocityOld[1] == 0 /*&& !intButtonD && !intButtonB*/){
-			// && außerhalb start area
-			velocity[0] = -velocityOld[0];
-			velocity[1] = -velocityOld[1];
-			//debug
-			position[0] = 310;
-			position[0] = 150;
+		//if no lever triggered, position doesn't change and not in start area (290px x-coord)
+		if (positionOld[0] == position[0] && positionOld[1] == position[1] && position[0] < 290 && !intButtonD && !intButtonB ){
+			//set ball back to the last moving position
+
+			if(position[1] < 45){					//increase y if ball is near the top of the table
+				position[0] = positionOld[0] - 1;
+				position[1] = positionOld[1] + 1;
+			}
+			else if (position[0] >= 145){			//decrease y & decrease x if ball is on the right table side
+				position[0] = positionOld[0] - 1;
+				position[1] = positionOld[1] - 1;
+			} else if(position[0] < 145){			//decrease y & increase x if ball is on the left table side
+				position[0] = positionOld[0] + 1;
+				position[1] = positionOld[1] - 1;
+			}
+			velocity[0] = -velocityOld[0] * 0.5;
+			velocity[1] = -velocityOld[1] * 0.5;
 
 		} else{
 			positionOld[0] = position[0];
@@ -1298,8 +1359,8 @@ void BallStuckTask(){
 			velocityOld[0] = velocity[0];
 			velocityOld[1] = velocity[1];
 		}
-		vTaskDelay(100);
-		};
+		vTaskDelay(150);
+	};
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
