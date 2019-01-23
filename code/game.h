@@ -1,9 +1,9 @@
 /**
- * Function definitions for the main project file.
+ * Function definitions for the main project file of ESPinball.
  *
- * @author: Jonathan Müller-Boruttau,
- * 			Tobias Fuchs tobias.fuchs@tum.de,
- * 			Nadja Peters nadja.peters@tum.de (RCS, TUM)
+ * @author: Simon Leier & Florian Geiser
+ *
+ *
  */
 
 #ifndef Demo_INCLUDED
@@ -25,7 +25,7 @@ void TaskController();
 void UserStats();
 void UserActions();
 void AnimationTimerTask();
-
+void BallStuckTask();
 
 
 #endif

@@ -1,5 +1,5 @@
 /**
- * This is the main file of the ESPinball.
+ * This is the main file of ESPinball.
  * *
  * @author: Simon Leier & Florian Geiser
  *
@@ -27,7 +27,8 @@ TaskHandle_t	drawTaskHandle = NULL,
 				TaskControllerHandle = NULL,
 				UserStatsHandle = NULL,
 				UserActionsHandle = NULL,
-				AnimationTimerTaskHandle = NULL;
+				AnimationTimerTaskHandle = NULL,
+				BallStuckTaskHandle = NULL;
 
 
 
@@ -673,6 +674,7 @@ int main() {
 	xTaskCreate(drawTask, "drawTask", 1000, NULL, 4, &drawTaskHandle);
 	// animation tasks
 	xTaskCreate(AnimationTimerTask, "AnimationTimerTask", 1000, NULL, 3, &AnimationTimerTaskHandle);
+	xTaskCreate(BallStuckTask, "BallStuckTask", 1000, NULL, 4,  &BallStuckTaskHandle);
 
 	// Start FreeRTOS Scheduler
 	vTaskStartScheduler();
@@ -828,7 +830,7 @@ void drawTask() {
 			break;
 		case 3: // singleplayer  mode
 
-			flagGameMode = 1; 				// sets game mode flat to single player
+			flagGameMode = 1; 				// sets game mode flag to single player
 
 			/****** LEVEL *****/
 			if (intActTable == intTableThree) {
@@ -1005,6 +1007,7 @@ void checkButton() {
 	int8_t FlagButtonK = 0;
 
 	while (TRUE) {
+		vTaskDelayUntil(&xLastWakeTime, tickFramerate);		//checks buttons every 100 ticks
 
 		//Buttons are Pulled-Up, setting a flag to increase it once per press, debouncing --> vTaskDelay
 		//Button A
@@ -1056,8 +1059,7 @@ void checkButton() {
 			FlagButtonK = 0;
 		}
 
-
-		vTaskDelayUntil(&xLastWakeTime, tickFramerate);		//checks buttons every  20 ticks
+		xLastWakeTime = xTaskGetTickCount();
 	}
 }
 
@@ -1144,8 +1146,7 @@ void UserActions(){
 			else {
 				intDrawScreen = intScreenBeforePause;
 			}
-			//stop time
-			//stop gravity
+
 			vTaskDelay(500);
 		}
 
@@ -1162,10 +1163,10 @@ void UserStats() {
 		// user stats
 		if (intScoreSingle >= 1000 && intPlayerLevel <= 1) {
 			intPlayerLevel = 2;
-			//velocity multiplier
+			velocityMultiplier = 1.5;			// increasing ball speed
 		} else if (intScoreSingle >= 3000 && intPlayerLevel <= 2) {
 			intPlayerLevel = 3;
-			//velocity multiplier
+			velocityMultiplier = 2;				// increasing ball speed
 		}
 
 		if (intDrawScreen == 3 || intDrawScreen == 4 || gameover != 1) { //if single player or multi player selected, start timer
@@ -1176,6 +1177,7 @@ void UserStats() {
 		// life decreasing
 		if((position[0] > 320 || position[0] < 0 || position[1] > 240 || position[1] < 0) && intLifes > 0){
 			intLifes--;
+			coinRadiusHittable = 5;	// big animation table 2, reset bumper size
 			position[0] = 310; 		// start position x
 			position[1] = 150;		// start position y
 			velocity[0] = 0;		// start velocity x
@@ -1210,6 +1212,7 @@ void UserStats() {
 				intPlayerLevel = 1;
 				coinRadiusHittable = 5;
 				flagGameMode = 0;
+				velocityMultiplier = 1;
 
 			}else if(intButtonE && flagGameMode == 2){
 
@@ -1232,6 +1235,7 @@ void UserStats() {
 				intPassedTime = 0;
 				intPlayerLevel = 1;
 				flagGameMode = 0;
+				velocityMultiplier = 1;
 			}
 
 
@@ -1269,6 +1273,34 @@ void AnimationTimerTask(){
 
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
+void BallStuckTask(){
+
+	TickType_t xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+	double velocityOld[] = {0, 0};
+	double positionOld[] = {0, 0};
+
+	while (TRUE) {
+		//vTaskDelayUntil(&xLastWakeTime, 100);
+
+		//if no velocity, no lever triggered, and position doesn't change
+		if (positionOld[0] == position[0] && positionOld[1] == position[1] && velocityOld[0] == 0 && velocityOld[1] == 0 /*&& !intButtonD && !intButtonB*/){
+			// && außerhalb start area
+			velocity[0] = -velocityOld[0];
+			velocity[1] = -velocityOld[1];
+			//debug
+			position[0] = 310;
+			position[0] = 150;
+
+		} else{
+			positionOld[0] = position[0];
+			positionOld[1] = position[1];
+			velocityOld[0] = velocity[0];
+			velocityOld[1] = velocity[1];
+		}
+		vTaskDelay(100);
+		};
+}
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------------------------------------*/

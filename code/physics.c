@@ -1,11 +1,8 @@
 /**
- * This is the main file of the ESPLaboratory Demo project.
- * It implements simple sample functions for the usage of UART,
- * writing to the display and processing user inputs.
+ * This is the physics file of ESPinball.
+ * *
+ * @author: Simon Leier & Florian Geiser
  *
- * @author: Jonathan Müller-Boruttau,
- * 			Tobias Fuchs tobias.fuchs@tum.de
- * 			Nadja Peters nadja.peters@tum.de (RCS, TUM)
  *
  */
 #include "includes.h"
@@ -23,7 +20,7 @@ static const uint16_t
 		centerX = 160,
 		centerY = 120;
 
-double velocityMultiplier = 1.5;
+double velocityMultiplier = 1;
 double velocity[] = {0, 0}; 		// {120, 0}
 double position[] = {310, 150};
 double startposition[] = {310, 150};
